@@ -1,0 +1,94 @@
+# Decap CMS configuration — Data 2 Decision website
+# HOW PERMISSIONS WORK (read README.md for the full setup):
+# - The comms team logs in with GitHub and can ONLY edit the four content
+#   collections below (Features, Projects, Publications, Team).
+# - They cannot touch site structure, design or settings: those files are not
+#   exposed here, and branch protection + CODEOWNERS block them in GitHub.
+# - Every change goes through the editorial workflow: the team submits content
+#   for review, and the admin (Naimul) approves it before it goes live.
+#   Deleting an entry also creates a review request — nothing is deleted
+#   without admin approval.
+
+backend:
+  name: github
+  # TODO: replace with the real repo, e.g. naimul2026/d2d-website
+  repo: naimulbhuiyan/d2d-website
+  branch: main
+  # TODO: replace with the deployed login worker URL, e.g.
+  # https://d2d-oauth.YOUR_SUBDOMAIN.workers.dev/auth
+  auth_endpoint: https://YOUR-WORKER-URL/auth
+
+# Editorial workflow: all edits become pull requests for admin approval.
+publish_mode: editorial_workflow
+
+# Uploaded images land here and are served from the site.
+media_folder: "assets/uploads"
+public_folder: "/assets/uploads"
+
+collections:
+  - name: "features"
+    label: "Features & News"
+    label_singular: "Feature"
+    files:
+      - file: "data/features.json"
+        label: "Features & News"
+        name: "features"
+        fields:
+          - label: "Features"
+            name: "items"
+            widget: "list"
+            fields:
+              - { label: "Title", name: "title", widget: "string" }
+              - { label: "Date", name: "date", widget: "datetime", date_format: "YYYY-MM-DD", time_format: false }
+              - { label: "Body", name: "body", widget: "text" }
+
+  - name: "projects"
+    label: "Projects"
+    label_singular: "Project"
+    files:
+      - file: "data/projects.json"
+        label: "Projects"
+        name: "projects"
+        fields:
+          - label: "Projects"
+            name: "items"
+            widget: "list"
+            fields:
+              - { label: "ID", name: "id", widget: "string", hint: "Tracker ID, e.g. T001" }
+              - { label: "Title", name: "title", widget: "string" }
+              - { label: "Lead", name: "lead", widget: "string" }
+              - { label: "Type", name: "type", widget: "select", options: ["Research", "Conference", "Funding", "Webinar"] }
+              - { label: "Status", name: "status", widget: "select", options: ["In sprint", "Submitted", "Under review", "Published", "Parked", "Closed"] }
+              - { label: "Description", name: "description", widget: "text", required: false }
+
+  - name: "publications"
+    label: "Publications"
+    label_singular: "Publication"
+    files:
+      - file: "data/publications.json"
+        label: "Publications"
+        name: "publications"
+        fields:
+          - label: "Publications"
+            name: "items"
+            widget: "list"
+            fields:
+              - { label: "Topic", name: "topic", widget: "string" }
+              - { label: "Detail", name: "detail", widget: "string", required: false }
+              - { label: "Status", name: "status", widget: "select", options: ["Under review", "Published", "Rejected — needs revision", "Accepted"] }
+
+  - name: "team"
+    label: "Team"
+    label_singular: "Team member"
+    files:
+      - file: "data/team.json"
+        label: "Team"
+        name: "team"
+        fields:
+          - label: "Team members"
+            name: "items"
+            widget: "list"
+            fields:
+              - { label: "Name", name: "name", widget: "string" }
+              - { label: "Role", name: "role", widget: "string" }
+              - { label: "Note", name: "note", widget: "text", required: false }

@@ -1,0 +1,11 @@
+# Structure files — only the site owner can approve changes to these.
+# Replace @naimulbhuiyan with the owner's GitHub username.
+# The comms team can edit content files (data/*.json, assets/uploads) only.
+
+/admin/config.yml @naimulbhuiyan
+/worker/ @naimulbhuiyan
+*.html @naimulbhuiyan
+*.css @naimulbhuiyan
+*.js @naimulbhuiyan
+wrangler.toml @naimulbhuiyan
+CODEOWNERS @naimulbhuiyan

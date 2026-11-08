@@ -1,0 +1,6 @@
+name = "d2d-oauth"
+main = "worker/auth.js"
+compatibility_date = "2026-11-08"
+
+# Secrets (set with: wrangler secret put GITHUB_CLIENT_ID / GITHUB_CLIENT_SECRET)
+# Do NOT put secrets in this file.
