@@ -13,12 +13,12 @@ The login helper runs on Vercel because the Cloudflare account got locked out
 | File | What it is |
 |---|---|
 | `index.html` | **Home**: hero, about, team, features, contact |
-| `research.html` | **Research**: 13 running projects + manuscripts under review |
+| `research.html` | **Research**: 13 running projects + 3 backlog projects + manuscripts under review. Each project card links to its project folder in the team's Drive (journal folder). |
 | `development.html` | **Development**: data systems, dashboards, tools, training |
 | `student-lab.html` | **Student Lab**: learn-by-doing space for BPH students |
 | `styles.css` | Teal theme matching the logo |
 | `app.js` | Loads the content files and renders each page (no build step) |
-| `data/projects.json` | The 13 running projects |
+| `data/projects.json` | The 16 projects: 13 in sprint + 3 backlog (Cumilla Research, University Student, Tobacco). Each entry's `link` is its Drive folder URL. |
 | `data/publications.json` | Manuscripts under review |
 | `data/team.json` | Team members and roles — photo, email and LinkedIn shown on Home; phone numbers are never stored here (the data files are public) |
 | `data/development.json` | Development work shown on the Development page |

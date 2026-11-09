@@ -22,27 +22,36 @@ function initials(name) {
 
 function projectDetails(p) {
   const hasDetails = (p.details || "").trim() !== "";
-  const hasLink = (p.link || "").trim() !== "";
-  if (!hasDetails && !hasLink) return "";
+  if (!hasDetails) return "";
   return `<details class="project-details"><summary>Project details</summary>
-    ${hasDetails ? `<p>${esc(p.details)}</p>` : ""}
-    ${hasLink ? `<p><a href="${esc(p.link)}" target="_blank" rel="noopener">Learn more →</a></p>` : ""}
+    <p>${esc(p.details)}</p>
   </details>`;
 }
 
+function cardLink(p, label) {
+  const hasLink = (p.link || "").trim() !== "";
+  if (!hasLink) return "";
+  return `<p><a href="${esc(p.link)}" target="_blank" rel="noopener">${esc(label)} →</a></p>`;
+}
+
 function renderProjects(list) {
-  const el = document.getElementById("project-list");
-  if (!el) return;
-  el.innerHTML = list.map((p) => `
+  const running = list.filter((p) => (p.status || "") !== "Backlog");
+  const other = list.filter((p) => (p.status || "") === "Backlog");
+  const renderCards = (items) => items.map((p) => `
     <article class="card">
       <span class="tag">${esc(p.type || "Research")}</span>
       <h3>${esc(p.title)}</h3>
       <p>${esc(p.description || "")}</p>
       <p class="meta">Lead: ${esc(p.lead || "—")} · Status: ${esc(p.status || "In sprint")}</p>
+      ${cardLink(p, "Drive folder")}
       ${projectDetails(p)}
     </article>`).join("");
+  const el = document.getElementById("project-list");
+  if (el) el.innerHTML = renderCards(running);
+  const otherEl = document.getElementById("project-list-other");
+  if (otherEl) otherEl.innerHTML = renderCards(other);
   const n = document.getElementById("stat-projects");
-  if (n) n.textContent = list.length;
+  if (n) n.textContent = running.length;
 }
 
 function renderPublications(list) {
@@ -96,6 +105,7 @@ function renderStudentLab(data) {
         <span class="tag">${esc(d.tag || "")}</span>
         <h3>${esc(d.title)}</h3>
         <p>${esc(d.description || "")}</p>
+        ${cardLink(d, "Learn more")}
         ${projectDetails(d)}
       </article>`).join("") : `<p class="small">${esc(emptyMsg)}</p>`;
   }
@@ -110,6 +120,7 @@ function renderDevelopment(list) {
       <h3>${esc(d.title)}</h3>
       <p>${esc(d.description || "")}</p>
       <p class="meta">Lead: ${esc(d.lead || "—")}</p>
+      ${cardLink(d, "Learn more")}
       ${projectDetails(d)}
     </article>`).join("");
 }

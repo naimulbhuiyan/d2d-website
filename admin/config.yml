@@ -66,10 +66,10 @@ collections:
               - { label: "Title", name: "title", widget: "string" }
               - { label: "Lead", name: "lead", widget: "string" }
               - { label: "Type", name: "type", widget: "select", options: ["Research", "Conference", "Funding", "Webinar"] }
-              - { label: "Status", name: "status", widget: "select", options: ["In sprint", "Submitted", "Under review", "Published", "Parked", "Closed"] }
+              - { label: "Status", name: "status", widget: "select", options: ["In sprint", "Backlog", "Submitted", "Under review", "Published", "Parked", "Closed"] }
               - { label: "Description", name: "description", widget: "text", required: false }
               - { label: "Details", name: "details", widget: "text", required: false, hint: "Longer detail shown when a visitor expands the project" }
-              - { label: "Link", name: "link", widget: "string", required: false, hint: "Optional link, e.g. a report or dashboard URL" }
+              - { label: "Link", name: "link", widget: "string", required: false, hint: "The project's Drive folder URL, e.g. https://drive.google.com/drive/folders/..." }
 
   - name: "publications"
     label: "Publications"
