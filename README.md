@@ -20,7 +20,8 @@ The login helper runs on Vercel because the Cloudflare account got locked out
 | `app.js` | Loads the content files and renders each page (no build step) |
 | `data/projects.json` | The 13 running projects |
 | `data/publications.json` | Manuscripts under review |
-| `data/team.json` | Team members and roles |
+| `data/team.json` | Team members and roles — photo, email and LinkedIn shown on Home; phone numbers are never stored here (the data files are public) |
+| `data/development.json` | Development work shown on the Development page |
 | `data/features.json` | News / features posts |
 | `assets/logo.png` | Team logo (transparent, 1728px) |
 | `admin/` | Login panel for the comms team (Decap CMS, free) |
@@ -74,8 +75,8 @@ rebuilds and republishes the site automatically.
 ## How the comms team updates the site
 
 1. Go to `https://YOUR-SITE.pages.dev/admin/` and log in with GitHub.
-2. They see only four sections: **Features & News, Projects, Publications, Team**.
-3. They add or edit entries and upload images. Nothing else is visible to them.
+2. They see only five sections: **Features & News, Projects, Publications, Team, Development**.
+3. They add or edit entries and upload images — including team photos and project details. Nothing else is visible to them.
 4. They press **Submit for review**. The change becomes a review request — it does
    **not** go live immediately.
 5. The admin (Naimul) approves it in GitHub. Then Cloudflare rebuilds the site
@@ -85,9 +86,10 @@ rebuilds and republishes the site automatically.
 
 This is enforced in three layers:
 
-1. **Admin panel shows content only.** Decap CMS is configured with just the four
+1. **Admin panel shows content only.** Decap CMS is configured with just the five
    content collections. There is no way to edit pages, design, settings or the
-   login setup from the panel.
+   login setup from the panel. Phone numbers are not collected at all: the
+   content files are public, so a phone number stored there would not be hidden.
 2. **Editorial workflow.** Every edit — and every delete request — becomes a pull
    request that the admin must approve. Nothing is deleted or published without
    that approval.

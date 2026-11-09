@@ -15,6 +15,21 @@ async function loadJSON(path) {
   return res.json();
 }
 
+function initials(name) {
+  return String(name || "?").split(/\s+/).filter(Boolean).slice(0, 2)
+    .map((w) => w[0].toUpperCase()).join("");
+}
+
+function projectDetails(p) {
+  const hasDetails = (p.details || "").trim() !== "";
+  const hasLink = (p.link || "").trim() !== "";
+  if (!hasDetails && !hasLink) return "";
+  return `<details class="project-details"><summary>Project details</summary>
+    ${hasDetails ? `<p>${esc(p.details)}</p>` : ""}
+    ${hasLink ? `<p><a href="${esc(p.link)}" target="_blank" rel="noopener">Learn more →</a></p>` : ""}
+  </details>`;
+}
+
 function renderProjects(list) {
   const el = document.getElementById("project-list");
   if (!el) return;
@@ -24,6 +39,7 @@ function renderProjects(list) {
       <h3>${esc(p.title)}</h3>
       <p>${esc(p.description || "")}</p>
       <p class="meta">Lead: ${esc(p.lead || "—")} · Status: ${esc(p.status || "In sprint")}</p>
+      ${projectDetails(p)}
     </article>`).join("");
   const n = document.getElementById("stat-projects");
   if (n) n.textContent = list.length;
@@ -43,11 +59,38 @@ function renderPublications(list) {
 function renderTeam(list) {
   const el = document.getElementById("team-list");
   if (!el) return;
-  el.innerHTML = list.map((m) => `
-    <article class="card">
+  el.innerHTML = list.map((m) => {
+    const photo = (m.photo || "").trim();
+    const email = (m.email || "").trim();
+    const linkedin = (m.linkedin || "").trim();
+    const visual = photo
+      ? `<img class="team-photo" src="${esc(photo)}" alt="Photo of ${esc(m.name)}" loading="lazy">`
+      : `<span class="team-initials" aria-hidden="true">${esc(initials(m.name))}</span>`;
+    const links = [
+      email ? `<a href="mailto:${esc(email)}">${esc(email)}</a>` : "",
+      linkedin ? `<a href="${esc(linkedin)}" target="_blank" rel="noopener">LinkedIn →</a>` : "",
+    ].filter(Boolean).join(" · ");
+    return `
+    <article class="card team-card">
+      ${visual}
       <span class="tag">${esc(m.role || "Team member")}</span>
       <h3>${esc(m.name)}</h3>
+      ${links ? `<p class="member-links">${links}</p>` : ""}
       <p class="meta">${esc(m.note || "")}</p>
+    </article>`;
+  }).join("");
+}
+
+function renderDevelopment(list) {
+  const el = document.getElementById("development-list");
+  if (!el) return;
+  el.innerHTML = list.map((d) => `
+    <article class="card">
+      <span class="tag">${esc(d.tag || "Development")}</span>
+      <h3>${esc(d.title)}</h3>
+      <p>${esc(d.description || "")}</p>
+      <p class="meta">Lead: ${esc(d.lead || "—")}</p>
+      ${projectDetails(d)}
     </article>`).join("");
 }
 
@@ -81,5 +124,9 @@ document.addEventListener("DOMContentLoaded", () => {
   loadJSON("data/features.json").then(renderFeatures).catch(() => {
     const el = document.getElementById("feature-list");
     if (el) el.innerHTML = "<p>Features could not be loaded.</p>";
+  });
+  loadJSON("data/development.json").then(renderDevelopment).catch(() => {
+    const el = document.getElementById("development-list");
+    if (el) el.innerHTML = "<p>Development work could not be loaded.</p>";
   });
 });

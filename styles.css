@@ -86,6 +86,26 @@ a { color: var(--teal-700); }
 .card .meta { font-size: 0.88rem; color: var(--muted); }
 .loading { color: var(--muted); }
 
+/* Team cards */
+.team-card .team-photo {
+  display: block; height: 84px; width: 84px; object-fit: cover;
+  border-radius: 50%; border: 3px solid var(--teal-100); margin-bottom: 10px;
+}
+.team-card .team-initials {
+  display: flex; align-items: center; justify-content: center;
+  height: 84px; width: 84px; border-radius: 50%;
+  background: var(--teal-700); color: #fff; font-size: 1.5rem; font-weight: 800;
+  margin-bottom: 10px;
+}
+.member-links { font-size: 0.88rem; word-break: break-all; }
+.member-links a { text-decoration: none; }
+.member-links a:hover { text-decoration: underline; }
+
+/* Expandable project details */
+.project-details { margin-top: 10px; border-top: 1px solid var(--line); padding-top: 8px; }
+.project-details summary { cursor: pointer; color: var(--teal-700); font-weight: 700; font-size: 0.92rem; }
+.project-details summary:hover { text-decoration: underline; }
+
 /* Publications */
 .pub-list { list-style: none; padding: 0; margin-top: 16px; }
 .pub-list li { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; margin-bottom: 10px; }

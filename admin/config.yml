@@ -1,9 +1,12 @@
 # Decap CMS configuration — Data 2 Decision website
 # HOW PERMISSIONS WORK (read README.md for the full setup):
-# - The comms team logs in with GitHub and can ONLY edit the four content
-#   collections below (Features, Projects, Publications, Team).
+# - The comms team logs in with GitHub and can ONLY edit the five content
+#   collections below (Features, Projects, Publications, Team, Development).
 # - They cannot touch site structure, design or settings: those files are not
 #   exposed here, and branch protection + CODEOWNERS block them in GitHub.
+# - Phone numbers are NOT collected anywhere on this site: the data files
+#   are public, so a phone number stored here would not actually be hidden.
+#   Keep phone numbers in the private tracker, never in the admin panel.
 # - Every change goes through the editorial workflow: the team submits content
 #   for review, and the admin (Naimul) approves it before it goes live.
 #   Deleting an entry also creates a review request — nothing is deleted
@@ -64,6 +67,8 @@ collections:
               - { label: "Type", name: "type", widget: "select", options: ["Research", "Conference", "Funding", "Webinar"] }
               - { label: "Status", name: "status", widget: "select", options: ["In sprint", "Submitted", "Under review", "Published", "Parked", "Closed"] }
               - { label: "Description", name: "description", widget: "text", required: false }
+              - { label: "Details", name: "details", widget: "text", required: false, hint: "Longer detail shown when a visitor expands the project" }
+              - { label: "Link", name: "link", widget: "string", required: false, hint: "Optional link, e.g. a report or dashboard URL" }
 
   - name: "publications"
     label: "Publications"
@@ -95,4 +100,26 @@ collections:
             fields:
               - { label: "Name", name: "name", widget: "string" }
               - { label: "Role", name: "role", widget: "string" }
+              - { label: "Photo", name: "photo", widget: "image", required: false, hint: "Square photo if available — otherwise initials are shown" }
+              - { label: "Email", name: "email", widget: "string", required: false }
+              - { label: "LinkedIn", name: "linkedin", widget: "string", required: false, hint: "Full profile URL, e.g. https://www.linkedin.com/in/..." }
               - { label: "Note", name: "note", widget: "text", required: false }
+
+  - name: "development"
+    label: "Development"
+    label_singular: "Development item"
+    files:
+      - file: "data/development.json"
+        label: "Development"
+        name: "development"
+        fields:
+          - label: "Development items"
+            name: "items"
+            widget: "list"
+            fields:
+              - { label: "Title", name: "title", widget: "string" }
+              - { label: "Category", name: "tag", widget: "select", options: ["Data systems", "Data collection", "Tools", "Training", "Dashboards"] }
+              - { label: "Description", name: "description", widget: "text", required: false }
+              - { label: "Lead", name: "lead", widget: "string", required: false }
+              - { label: "Details", name: "details", widget: "text", required: false, hint: "Longer detail shown when a visitor expands the item" }
+              - { label: "Link", name: "link", widget: "string", required: false, hint: "Optional link, e.g. a dashboard URL" }
