@@ -16,9 +16,7 @@ backend:
   branch: main
   # Login runs on Vercel (free) — the Cloudflare account is locked, so the
   # Worker version in worker/auth.js is kept only as a backup.
-  # Replace YOUR-VERCEL-URL with the deployed Vercel project URL, e.g.
-  # https://d2d-website-XXX.vercel.app/api/auth
-  auth_endpoint: https://YOUR-VERCEL-URL/api/auth
+  auth_endpoint: https://d2d-website-five.vercel.app/api/auth
 
 # Editorial workflow: all edits become pull requests for admin approval.
 publish_mode: editorial_workflow
