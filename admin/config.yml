@@ -1,7 +1,8 @@
 # Decap CMS configuration — Data 2 Decision website
 # HOW PERMISSIONS WORK (read README.md for the full setup):
-# - The comms team logs in with GitHub and can ONLY edit the five content
-#   collections below (Features, Projects, Publications, Team, Development).
+# - The comms team logs in with GitHub and can ONLY edit the six content
+#   collections below (Features, Projects, Publications, Team, Development,
+#   Student Lab).
 # - They cannot touch site structure, design or settings: those files are not
 #   exposed here, and branch protection + CODEOWNERS block them in GitHub.
 # - Phone numbers are NOT collected anywhere on this site: the data files
@@ -123,3 +124,39 @@ collections:
               - { label: "Lead", name: "lead", widget: "string", required: false }
               - { label: "Details", name: "details", widget: "text", required: false, hint: "Longer detail shown when a visitor expands the item" }
               - { label: "Link", name: "link", widget: "string", required: false, hint: "Optional link, e.g. a dashboard URL" }
+
+  - name: "student-lab"
+    label: "Student Lab"
+    label_singular: "Student Lab entry"
+    files:
+      - file: "data/student-lab.json"
+        label: "Student Lab"
+        name: "student-lab"
+        fields:
+          - label: "BPH — Statistics Lab"
+            name: "bph_statistics_lab"
+            widget: "list"
+            fields:
+              - { label: "Title", name: "title", widget: "string" }
+              - { label: "Tag", name: "tag", widget: "string", required: false }
+              - { label: "Description", name: "description", widget: "text", required: false }
+              - { label: "Details", name: "details", widget: "text", required: false }
+              - { label: "Link", name: "link", widget: "string", required: false }
+          - label: "MPH — Thesis"
+            name: "mph_thesis"
+            widget: "list"
+            fields:
+              - { label: "Title", name: "title", widget: "string" }
+              - { label: "Tag", name: "tag", widget: "string", required: false }
+              - { label: "Description", name: "description", widget: "text", required: false }
+              - { label: "Details", name: "details", widget: "text", required: false }
+              - { label: "Link", name: "link", widget: "string", required: false }
+          - label: "MPH — Projects"
+            name: "mph_projects"
+            widget: "list"
+            fields:
+              - { label: "Title", name: "title", widget: "string" }
+              - { label: "Tag", name: "tag", widget: "string", required: false }
+              - { label: "Description", name: "description", widget: "text", required: false }
+              - { label: "Details", name: "details", widget: "text", required: false }
+              - { label: "Link", name: "link", widget: "string", required: false }

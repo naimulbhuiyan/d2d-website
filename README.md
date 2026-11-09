@@ -22,6 +22,7 @@ The login helper runs on Vercel because the Cloudflare account got locked out
 | `data/publications.json` | Manuscripts under review |
 | `data/team.json` | Team members and roles — photo, email and LinkedIn shown on Home; phone numbers are never stored here (the data files are public) |
 | `data/development.json` | Development work shown on the Development page |
+| `data/student-lab.json` | Student Lab: BPH Statistics Lab, MPH Thesis, MPH Projects |
 | `data/features.json` | News / features posts |
 | `assets/logo.png` | Team logo (transparent, 1728px) |
 | `admin/` | Login panel for the comms team (Decap CMS, free) |
@@ -75,7 +76,7 @@ rebuilds and republishes the site automatically.
 ## How the comms team updates the site
 
 1. Go to `https://YOUR-SITE.pages.dev/admin/` and log in with GitHub.
-2. They see only five sections: **Features & News, Projects, Publications, Team, Development**.
+2. They see only six sections: **Features & News, Projects, Publications, Team, Development, Student Lab**.
 3. They add or edit entries and upload images — including team photos and project details. Nothing else is visible to them.
 4. They press **Submit for review**. The change becomes a review request — it does
    **not** go live immediately.
@@ -86,7 +87,7 @@ rebuilds and republishes the site automatically.
 
 This is enforced in three layers:
 
-1. **Admin panel shows content only.** Decap CMS is configured with just the five
+1. **Admin panel shows content only.** Decap CMS is configured with just the six
    content collections. There is no way to edit pages, design, settings or the
    login setup from the panel. Phone numbers are not collected at all: the
    content files are public, so a phone number stored there would not be hidden.

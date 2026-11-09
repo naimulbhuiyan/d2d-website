@@ -81,6 +81,26 @@ function renderTeam(list) {
   }).join("");
 }
 
+function renderStudentLab(data) {
+  const sections = [
+    ["bph-list", data.bph_statistics_lab, "No Statistics Lab members listed yet — the team adds them through the admin panel."],
+    ["mph-thesis-list", data.mph_thesis, "No theses listed yet — the team adds them through the admin panel."],
+    ["mph-projects-list", data.mph_projects, "No projects listed yet — the team adds them through the admin panel."],
+  ];
+  for (const [id, list, emptyMsg] of sections) {
+    const el = document.getElementById(id);
+    if (!el) continue;
+    const items = Array.isArray(list) ? list : [];
+    el.innerHTML = items.length ? items.map((d) => `
+      <article class="card">
+        <span class="tag">${esc(d.tag || "")}</span>
+        <h3>${esc(d.title)}</h3>
+        <p>${esc(d.description || "")}</p>
+        ${projectDetails(d)}
+      </article>`).join("") : `<p class="small">${esc(emptyMsg)}</p>`;
+  }
+}
+
 function renderDevelopment(list) {
   const el = document.getElementById("development-list");
   if (!el) return;
@@ -128,5 +148,11 @@ document.addEventListener("DOMContentLoaded", () => {
   loadJSON("data/development.json").then(renderDevelopment).catch(() => {
     const el = document.getElementById("development-list");
     if (el) el.innerHTML = "<p>Development work could not be loaded.</p>";
+  });
+  loadJSON("data/student-lab.json").then(renderStudentLab).catch(() => {
+    for (const id of ["bph-list", "mph-thesis-list", "mph-projects-list"]) {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = "<p>Student Lab entries could not be loaded.</p>";
+    }
   });
 });
