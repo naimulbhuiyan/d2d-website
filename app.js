@@ -58,9 +58,17 @@ function renderPublications(list) {
   const el = document.getElementById("publication-list");
   if (!el) return;
   const underReview = list.filter((p) => (p.status || "").toLowerCase().includes("review"));
-  el.innerHTML = list.map((p) => `
-    <li><span class="pub-topic">${esc(p.topic)}</span>
-    <span class="pub-note"> — ${esc(p.detail || "")} · ${esc(p.status || "")}</span></li>`).join("");
+  el.innerHTML = list.map((p) => {
+    const links = [
+      (p.web || "").trim() ? `<a href="${esc(p.web)}" target="_blank" rel="noopener">Submitted to →</a>` : "",
+      (p.drive || "").trim() ? `<a href="${esc(p.drive)}" target="_blank" rel="noopener">Drive folder →</a>` : "",
+    ].filter(Boolean).join(" · ");
+    const lead = (p.lead || "").trim();
+    return `<li><span class="pub-topic">${esc(p.topic)}</span>
+    <span class="pub-note"> — ${esc(p.detail || "")} · ${esc(p.status || "")}</span>
+    ${lead ? `<span class="pub-note"> · Lead: ${esc(lead)}</span>` : ""}
+    ${links ? `<br><span class="pub-note">${links}</span>` : ""}</li>`;
+  }).join("");
   const n = document.getElementById("stat-review");
   if (n) n.textContent = underReview.length;
 }

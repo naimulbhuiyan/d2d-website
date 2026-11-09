@@ -13,7 +13,7 @@ The login helper runs on Vercel because the Cloudflare account got locked out
 | File | What it is |
 |---|---|
 | `index.html` | **Home**: hero, about, team, features, contact |
-| `research.html` | **Research**: 13 running projects + 3 backlog projects + manuscripts under review. Each project card links to its project folder in the team's Drive (journal folder). |
+| `research.html` | **Research**: 13 running projects + 3 backlog projects + 26 submitted publications (24 under review, 1 rejected, 1 published). Each project card links to its project folder in the team's Drive (journal folder); each publication shows its lead person and links to the journal and its Drive folder where available. |
 | `development.html` | **Development**: data systems, dashboards, tools, training |
 | `student-lab.html` | **Student Lab**: learn-by-doing space for BPH students |
 | `styles.css` | Teal theme matching the logo |
@@ -21,7 +21,7 @@ The login helper runs on Vercel because the Cloudflare account got locked out
 | `data/projects.json` | The 16 projects: 13 in sprint + 3 backlog (Cumilla Research, University Student, Tobacco). Each entry's `link` is its Drive folder URL. |
 | `data/publications.json` | Manuscripts under review |
 | `data/team.json` | Team members and roles — photo, email and LinkedIn shown on Home; phone numbers are never stored here (the data files are public) |
-| `data/development.json` | Development work shown on the Development page |
+| `data/development.json` | Development work shown on the Development page: 4 team items + 13 dashboards/tools from Naimul's personal site (sites.google.com/view/naimulislam2024/project). |
 | `data/student-lab.json` | Student Lab: BPH Statistics Lab, MPH Thesis, MPH Projects |
 | `data/features.json` | News / features posts |
 | `assets/logo.png` | Team logo (transparent, 1728px) |

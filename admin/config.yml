@@ -72,20 +72,23 @@ collections:
               - { label: "Link", name: "link", widget: "string", required: false, hint: "The project's Drive folder URL, e.g. https://drive.google.com/drive/folders/..." }
 
   - name: "publications"
-    label: "Publications"
+    label: "Submitted Publications"
     label_singular: "Publication"
     files:
       - file: "data/publications.json"
-        label: "Publications"
+        label: "Submitted Publications"
         name: "publications"
         fields:
-          - label: "Publications"
+          - label: "Submitted Publications"
             name: "items"
             widget: "list"
             fields:
               - { label: "Topic", name: "topic", widget: "string" }
               - { label: "Detail", name: "detail", widget: "string", required: false }
               - { label: "Status", name: "status", widget: "select", options: ["Under review", "Published", "Rejected — needs revision", "Accepted"] }
+              - { label: "Lead", name: "lead", widget: "string", required: false, hint: "Lead person, e.g. Naimul" }
+              - { label: "Web link", name: "web", widget: "string", required: false, hint: "Where submitted — journal or conference website" }
+              - { label: "Drive folder", name: "drive", widget: "string", required: false, hint: "Drive folder URL for the manuscript" }
 
   - name: "team"
     label: "Team"
