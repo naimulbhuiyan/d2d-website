@@ -97,10 +97,10 @@ function projectCard(p, photos) {
   const deadline = (p.deadline || "").trim();
   return `
     <article class="card">
-      <span class="tag">${esc(p.type || "Research")}</span>
+      <span class="tag">${esc(p.type || "Research")}</span>${deadline ? `<span class="tag deadline-tag">Deadline: ${esc(deadline)}</span>` : ""}
       <h3>${esc(p.title)}</h3>
       <p>${esc(p.description || "")}</p>
-      <p class="meta">Lead: ${leadHTML(p.lead, photos)} · Status: ${esc(p.status || "In sprint")}${deadline ? ` · Deadline: ${esc(deadline)}` : ""}</p>
+      <p class="meta">Lead: ${leadHTML(p.lead, photos)} · Status: ${esc(p.status || "In sprint")}</p>
       ${cardLink(p, "Drive folder")}
       ${projectDetails(p)}
     </article>`;
