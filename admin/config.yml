@@ -16,7 +16,11 @@ backend:
   branch: main
   # Login runs on Vercel (free) — the Cloudflare account is locked, so the
   # Worker version in worker/auth.js is kept only as a backup.
-  auth_endpoint: https://d2d-website-five.vercel.app/api/auth
+  # Decap builds the login URL as base_url + "/" + auth_endpoint, so
+  # base_url is just the host (no path) and auth_endpoint is just the path.
+  # (A full URL in auth_endpoint gets wrongly stuck after api.netlify.com.)
+  base_url: https://d2d-website-five.vercel.app
+  auth_endpoint: api/auth
 
 # Editorial workflow: all edits become pull requests for admin approval.
 publish_mode: editorial_workflow

@@ -52,13 +52,18 @@ It runs on Vercel (free hobby tier) because the Cloudflare account is locked.
    Deploy. Note the project URL, e.g. `https://d2d-website-XXX.vercel.app`.
 3. In GitHub: Settings → Developer settings → OAuth Apps → New OAuth App.
    - Homepage URL: `https://d2d-7k4.pages.dev`
-   - Authorization callback URL: `https://YOUR-VERCEL-URL/api/callback`
+   - Authorization callback URL: `https://d2d-website-five.vercel.app/api/callback`
    - Note the Client ID and generate a Client Secret.
 4. In Vercel: Project → Settings → Environment Variables. Add:
    `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` (Production), then redeploy
    (Deployments → ⋯ → Redeploy).
-5. In `admin/config.yml`, replace `YOUR-VERCEL-URL` with the deployed Vercel URL
-   (e.g. `https://d2d-website-XXX.vercel.app`).
+5. In `admin/config.yml`, the login is already wired to Vercel the Decap way:
+   `base_url: https://d2d-website-five.vercel.app` (host only, no path) and
+   `auth_endpoint: api/auth` (path only). Decap opens
+   `base_url + "/" + auth_endpoint` for login — a full URL in `auth_endpoint`
+   breaks it (Decap sticks it after its default api.netlify.com host).
+   (Vercel project: `d2d-website`, team `Naimul` — dashboard at
+   https://vercel.com/naimul4/d2d-website.)
 6. Alternative, if the Cloudflare account is ever recovered: the same helper
    exists as a Cloudflare Worker in `worker/auth.js` (see its header comments).
 

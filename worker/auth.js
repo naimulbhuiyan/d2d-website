@@ -1,6 +1,7 @@
 // Cloudflare Worker — login helper for Decap CMS (GitHub backend).
-// Free on Cloudflare's Workers free tier.
-// Setup:
+// Free on Cloudflare's Workers free tier. BACKUP ONLY: the live login runs
+// on Vercel (api/auth.js, api/callback.js) because the Cloudflare account
+// is locked. Setup:
 //   1. Create a GitHub OAuth App (Settings > Developer settings > OAuth Apps):
 //        Homepage URL:  https://YOUR-SITE.pages.dev
 //        Callback URL:  https://YOUR-WORKER.workers.dev/callback
@@ -8,7 +9,9 @@
 //        wrangler secret put GITHUB_CLIENT_ID
 //        wrangler secret put GITHUB_CLIENT_SECRET
 //   3. Deploy: wrangler deploy
-//   4. Put the Worker URL into admin/config.yml as auth_endpoint.
+//   4. In admin/config.yml, set base_url to the Worker host (no path) and
+//      auth_endpoint to `auth` (path only) — Decap opens
+//      base_url + "/" + auth_endpoint. A full URL in auth_endpoint breaks it.
 
 export default {
   async fetch(request, env) {
