@@ -14,9 +14,11 @@ backend:
   # TODO: replace with the real repo, e.g. naimul2026/d2d-website
   repo: naimulbhuiyan/d2d-website
   branch: main
-  # TODO: replace with the deployed login worker URL, e.g.
-  # https://d2d-oauth.YOUR_SUBDOMAIN.workers.dev/auth
-  auth_endpoint: https://YOUR-WORKER-URL/auth
+  # Login runs on Vercel (free) — the Cloudflare account is locked, so the
+  # Worker version in worker/auth.js is kept only as a backup.
+  # Replace YOUR-VERCEL-URL with the deployed Vercel project URL, e.g.
+  # https://d2d-website-XXX.vercel.app/api/auth
+  auth_endpoint: https://YOUR-VERCEL-URL/api/auth
 
 # Editorial workflow: all edits become pull requests for admin approval.
 publish_mode: editorial_workflow

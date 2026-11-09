@@ -4,7 +4,9 @@ A free, professional website for the D2D research team. Static site, teal theme,
 team logo, real content from the Agile Tracker. Hosted free on Cloudflare Pages,
 with a login admin panel for the comms team.
 
-**Cost: $0.** Cloudflare Pages (free) + Cloudflare Workers free tier + GitHub (free).
+**Cost: $0.** Cloudflare Pages (free) + Vercel free tier (login helper) + GitHub (free).
+The login helper runs on Vercel because the Cloudflare account got locked out
+(see step 3); the Cloudflare Worker version in `worker/` is kept as a backup.
 
 ## What is inside
 
@@ -22,7 +24,8 @@ with a login admin panel for the comms team.
 | `data/features.json` | News / features posts |
 | `assets/logo.png` | Team logo (transparent, 1728px) |
 | `admin/` | Login panel for the comms team (Decap CMS, free) |
-| `worker/auth.js` | Login helper for the admin panel (Cloudflare Worker) |
+| `api/auth.js`, `api/callback.js` | Login helper for the admin panel (Vercel serverless functions) |
+| `worker/auth.js` | Same login helper, Cloudflare Worker version (backup — Cloudflare account is locked) |
 | `CODEOWNERS` | Protects structure files — only the owner can approve them |
 
 ## Deploy — step by step (all free)
@@ -40,17 +43,24 @@ with a login admin panel for the comms team.
 4. Deploy. Your site is live at `https://d2d-website-XXX.pages.dev`.
    (A custom domain can be added later, also free on Cloudflare.)
 
-### 3. Login worker (free)
+### 3. Login helper on Vercel (free)
 The admin login needs a small helper so the comms team can sign in with GitHub.
-1. In GitHub: Settings → Developer settings → OAuth Apps → New OAuth App.
-   - Homepage URL: your Pages URL from step 2.
-   - Authorization callback URL: `https://d2d-oauth.YOUR_SUBDOMAIN.workers.dev/callback`
+It runs on Vercel (free hobby tier) because the Cloudflare account is locked.
+1. Create a free Vercel account (sign up with GitHub).
+2. Add New Project → Import the `naimulbhuiyan/d2d-website` repo.
+   Framework preset: **Other**. Build command: **leave empty**. Output directory: `/`.
+   Deploy. Note the project URL, e.g. `https://d2d-website-XXX.vercel.app`.
+3. In GitHub: Settings → Developer settings → OAuth Apps → New OAuth App.
+   - Homepage URL: `https://d2d-7k4.pages.dev`
+   - Authorization callback URL: `https://YOUR-VERCEL-URL/api/callback`
    - Note the Client ID and generate a Client Secret.
-2. Install Wrangler once: `npm install -g wrangler` (needs Node.js), then `wrangler login`.
-3. In this folder: `wrangler secret put GITHUB_CLIENT_ID` and
-   `wrangler secret put GITHUB_CLIENT_SECRET`, then `wrangler deploy`.
-4. In `admin/config.yml`, replace `YOUR-WORKER-URL` with the deployed Worker URL
-   (e.g. `https://d2d-oauth.YOUR_SUBDOMAIN.workers.dev`).
+4. In Vercel: Project → Settings → Environment Variables. Add:
+   `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` (Production), then redeploy
+   (Deployments → ⋯ → Redeploy).
+5. In `admin/config.yml`, replace `YOUR-VERCEL-URL` with the deployed Vercel URL
+   (e.g. `https://d2d-website-XXX.vercel.app`).
+6. Alternative, if the Cloudflare account is ever recovered: the same helper
+   exists as a Cloudflare Worker in `worker/auth.js` (see its header comments).
 
 ### 4. Done
 Open the site, click **Team Login**, sign in with GitHub. Every content change
