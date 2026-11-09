@@ -87,6 +87,7 @@ a { color: var(--teal-700); }
 .loading { color: var(--muted); }
 
 /* Team cards */
+.team-group-title { margin: 30px 0 0; font-size: 1.25rem; color: var(--teal-900); }
 .team-card .team-photo {
   display: block; height: 84px; width: 84px; object-fit: cover;
   border-radius: 50%; border: 3px solid var(--teal-100); margin-bottom: 10px;

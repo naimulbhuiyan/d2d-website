@@ -104,6 +104,7 @@ collections:
             fields:
               - { label: "Name", name: "name", widget: "string" }
               - { label: "Role", name: "role", widget: "string" }
+              - { label: "Group", name: "group", widget: "select", options: ["Founder", "Coordinators", "Comm. Focal", "Research Assistant and Volunteer"], default: "Research Assistant and Volunteer", hint: "Which section of the Team page this person appears in" }
               - { label: "Photo", name: "photo", widget: "image", required: false, hint: "Square photo if available — otherwise initials are shown" }
               - { label: "Email", name: "email", widget: "string", required: false }
               - { label: "LinkedIn", name: "linkedin", widget: "string", required: false, hint: "Full profile URL, e.g. https://www.linkedin.com/in/..." }

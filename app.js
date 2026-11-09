@@ -130,21 +130,18 @@ function renderPublications(list, photos) {
   if (n) n.textContent = underReview.length;
 }
 
-function renderTeam(list) {
-  const el = document.getElementById("team-list");
-  if (!el) return;
-  el.innerHTML = list.map((m) => {
-    const photo = (m.photo || "").trim();
-    const email = (m.email || "").trim();
-    const linkedin = (m.linkedin || "").trim();
-    const visual = photo
-      ? `<img class="team-photo" src="${esc(photo)}" alt="Photo of ${esc(m.name)}" loading="lazy">`
-      : `<span class="team-initials" aria-hidden="true">${esc(initials(m.name))}</span>`;
-    const links = [
-      email ? `<a href="mailto:${esc(email)}">${esc(email)}</a>` : "",
-      linkedin ? `<a href="${esc(linkedin)}" target="_blank" rel="noopener">LinkedIn →</a>` : "",
-    ].filter(Boolean).join(" · ");
-    return `
+function teamCard(m) {
+  const photo = (m.photo || "").trim();
+  const email = (m.email || "").trim();
+  const linkedin = (m.linkedin || "").trim();
+  const visual = photo
+    ? `<img class="team-photo" src="${esc(photo)}" alt="Photo of ${esc(m.name)}" loading="lazy">`
+    : `<span class="team-initials" aria-hidden="true">${esc(initials(m.name))}</span>`;
+  const links = [
+    email ? `<a href="mailto:${esc(email)}">${esc(email)}</a>` : "",
+    linkedin ? `<a href="${esc(linkedin)}" target="_blank" rel="noopener">LinkedIn →</a>` : "",
+  ].filter(Boolean).join(" · ");
+  return `
     <article class="card team-card">
       ${visual}
       <span class="tag">${esc(m.role || "Team member")}</span>
@@ -152,6 +149,23 @@ function renderTeam(list) {
       ${links ? `<p class="member-links">${links}</p>` : ""}
       <p class="meta">${esc(m.note || "")}</p>
     </article>`;
+}
+
+const TEAM_GROUPS = [
+  { key: "Founder", title: "" },
+  { key: "Coordinators", title: "Coordinators" },
+  { key: "Comm. Focal", title: "Comm. Focal" },
+  { key: "Research Assistant and Volunteer", title: "Research Assistant and Volunteer" },
+];
+
+function renderTeam(list) {
+  const el = document.getElementById("team-list");
+  if (!el) return;
+  el.innerHTML = TEAM_GROUPS.map((g) => {
+    const members = list.filter((m) => (m.group || "Research Assistant and Volunteer") === g.key);
+    if (!members.length) return "";
+    const heading = g.title ? `<h3 class="team-group-title">${esc(g.title)}</h3>` : "";
+    return `${heading}<div class="cards team-cards">${members.map(teamCard).join("")}</div>`;
   }).join("");
 }
 
