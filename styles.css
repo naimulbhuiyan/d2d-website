@@ -120,6 +120,7 @@ a { color: var(--teal-700); }
 .quote { margin: 24px 0; padding: 12px 18px; border-left: 4px solid var(--teal-500); font-style: italic; color: var(--muted); }
 .quote span { font-style: normal; font-size: 0.9rem; }
 .site-footer a { color: var(--teal-300); }
+.lead-photo { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; vertical-align: middle; border: 2px solid var(--teal-100); }
 
 @media (max-width: 640px) {
   .hero h1 { font-size: 1.8rem; }

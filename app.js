@@ -34,7 +34,64 @@ function cardLink(p, label) {
   return `<p><a href="${esc(p.link)}" target="_blank" rel="noopener">${esc(label)} →</a></p>`;
 }
 
-function renderProjects(list) {
+// Lead-person photos: small circular photos from the team data (the same
+// files as the home page team cards), linked to the person's LinkedIn when
+// known, otherwise to the home page Team section.
+function normalizeName(s) {
+  return String(s || "").toLowerCase()
+    .replace(/\b(dr|md|mst|most|prof)\.?/g, "")
+    .replace(/\b(apa|bhai|da)\b/g, "")
+    .replace(/[^a-z ]/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function buildPhotoMap(team) {
+  const byFull = {};
+  const firstCount = {};
+  (team || []).forEach((m) => {
+    const full = normalizeName(m.name);
+    if (!full) return;
+    byFull[full] = m;
+    const first = full.split(" ")[0];
+    firstCount[first] = (firstCount[first] || 0) + 1;
+  });
+  const byFirst = {};
+  (team || []).forEach((m) => {
+    const full = normalizeName(m.name);
+    const first = full.split(" ")[0];
+    if (first && firstCount[first] === 1) byFirst[first] = m;
+  });
+  return { byFull, byFirst };
+}
+
+function findPerson(name, map) {
+  if (!map) return null;
+  const n = normalizeName(name);
+  if (!n) return null;
+  // Short forms the tracker uses: "Jannat" is Jannatul Ferdouse (DayCare
+  // coordinator); the other Jannatul on the team is Jannatul Ferdous Maya.
+  const aliases = { "jannat": "jannatul ferdouse" };
+  if (aliases[n] && map.byFull[aliases[n]]) return map.byFull[aliases[n]];
+  return map.byFull[n] || map.byFirst[n.split(" ")[0]] || null;
+}
+
+function leadHTML(lead, map) {
+  const raw = String(lead || "").trim();
+  if (!raw || raw === "—" || /^(unassigned|team-wide)$/i.test(raw)) return esc(raw || "—");
+  return raw.split(/[/+,]/).map((s) => s.trim()).filter(Boolean).map((name) => {
+    const person = findPerson(name, map);
+    const photo = person && (person.photo || "").trim();
+    const linkedin = person && (person.linkedin || "").trim();
+    const href = linkedin || "index.html#team";
+    const ext = href.startsWith("http");
+    const target = ext ? ' target="_blank" rel="noopener"' : "";
+    const img = photo
+      ? `<a href="${esc(href)}"${target}><img class="lead-photo" src="${esc(photo)}" alt="Photo of ${esc(name)}" loading="lazy"></a> `
+      : "";
+    return `${img}<a href="${esc(href)}"${target}>${esc(name)}</a>`;
+  }).join(" · ");
+}
+
+function renderProjects(list, photos) {
   const running = list.filter((p) => (p.status || "") !== "Backlog");
   const other = list.filter((p) => (p.status || "") === "Backlog");
   const renderCards = (items) => items.map((p) => `
@@ -42,7 +99,7 @@ function renderProjects(list) {
       <span class="tag">${esc(p.type || "Research")}</span>
       <h3>${esc(p.title)}</h3>
       <p>${esc(p.description || "")}</p>
-      <p class="meta">Lead: ${esc(p.lead || "—")} · Status: ${esc(p.status || "In sprint")}</p>
+      <p class="meta">Lead: ${leadHTML(p.lead, photos)} · Status: ${esc(p.status || "In sprint")}</p>
       ${cardLink(p, "Drive folder")}
       ${projectDetails(p)}
     </article>`).join("");
@@ -54,7 +111,7 @@ function renderProjects(list) {
   if (n) n.textContent = running.length;
 }
 
-function renderPublications(list) {
+function renderPublications(list, photos) {
   const el = document.getElementById("publication-list");
   if (!el) return;
   const underReview = list.filter((p) => (p.status || "").toLowerCase().includes("review"));
@@ -66,7 +123,7 @@ function renderPublications(list) {
     const lead = (p.lead || "").trim();
     return `<li><span class="pub-topic">${esc(p.topic)}</span>
     <span class="pub-note"> — ${esc(p.detail || "")} · ${esc(p.status || "")}</span>
-    ${lead ? `<span class="pub-note"> · Lead: ${esc(lead)}</span>` : ""}
+    ${lead ? `<span class="pub-note"> · Lead: ${leadHTML(lead, photos)}</span>` : ""}
     ${links ? `<br><span class="pub-note">${links}</span>` : ""}</li>`;
   }).join("");
   const n = document.getElementById("stat-review");
@@ -148,17 +205,23 @@ function renderFeatures(list) {
 document.addEventListener("DOMContentLoaded", () => {
   const yearEl = document.getElementById("year");
   if (yearEl) yearEl.textContent = new Date().getFullYear();
-  loadJSON("data/projects.json").then(renderProjects).catch(() => {
-    const el = document.getElementById("project-list");
-    if (el) el.innerHTML = "<p>Projects could not be loaded.</p>";
-  });
-  loadJSON("data/publications.json").then(renderPublications).catch(() => {
-    const el = document.getElementById("publication-list");
-    if (el) el.innerHTML = "<li>Publications could not be loaded.</li>";
-  });
-  loadJSON("data/team.json").then(renderTeam).catch(() => {
+  const teamData = loadJSON("data/team.json").then((t) => {
+    renderTeam(t);
+    return buildPhotoMap(t);
+  }).catch(() => {
     const el = document.getElementById("team-list");
     if (el) el.innerHTML = "<p>Team could not be loaded.</p>";
+    return null;
+  });
+  teamData.then((photos) => {
+    loadJSON("data/projects.json").then((l) => renderProjects(l, photos)).catch(() => {
+      const el = document.getElementById("project-list");
+      if (el) el.innerHTML = "<p>Projects could not be loaded.</p>";
+    });
+    loadJSON("data/publications.json").then((l) => renderPublications(l, photos)).catch(() => {
+      const el = document.getElementById("publication-list");
+      if (el) el.innerHTML = "<li>Publications could not be loaded.</li>";
+    });
   });
   loadJSON("data/features.json").then(renderFeatures).catch(() => {
     const el = document.getElementById("feature-list");
