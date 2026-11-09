@@ -70,6 +70,7 @@ collections:
               - { label: "Status", name: "status", widget: "select", options: ["In sprint", "Backlog", "Submitted", "Under review", "Published", "Parked", "Closed"] }
               - { label: "Description", name: "description", widget: "text", required: false }
               - { label: "Details", name: "details", widget: "text", required: false, hint: "Longer detail shown when a visitor expands the project" }
+              - { label: "Deadline", name: "deadline", widget: "string", required: false, hint: "Final deadline from the tracker, e.g. 21 Nov 2026" }
               - { label: "Link", name: "link", widget: "string", required: false, hint: "The project's Drive folder URL, e.g. https://drive.google.com/drive/folders/..." }
 
   - name: "publications"
@@ -183,3 +184,20 @@ collections:
               - { label: "Description", name: "description", widget: "text", required: false }
               - { label: "Details", name: "details", widget: "text", required: false }
               - { label: "Link", name: "link", widget: "string", required: false }
+
+  - name: "collaborations"
+    label: "Collaboration"
+    label_singular: "Collaborator"
+    files:
+      - file: "data/collaborations.json"
+        label: "Collaboration"
+        name: "collaborations"
+        fields:
+          - label: "Collaborators"
+            name: "items"
+            widget: "list"
+            fields:
+              - { label: "Name", name: "name", widget: "string" }
+              - { label: "Logo", name: "logo", widget: "image", required: false, hint: "Logo image — wide logos display best" }
+              - { label: "Link", name: "link", widget: "string", required: false, hint: "Website or Facebook page URL" }
+              - { label: "Note", name: "note", widget: "text", required: false }

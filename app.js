@@ -94,12 +94,13 @@ function leadHTML(lead, map) {
 const PROJECT_THEMES = ["Mental Health", "TB", "Digital Health", "Infectious Disease", "Child Health", "Refugee & Humanitarian Health", "Tobacco", "General Research"];
 
 function projectCard(p, photos) {
+  const deadline = (p.deadline || "").trim();
   return `
     <article class="card">
       <span class="tag">${esc(p.type || "Research")}</span>
       <h3>${esc(p.title)}</h3>
       <p>${esc(p.description || "")}</p>
-      <p class="meta">Lead: ${leadHTML(p.lead, photos)} · Status: ${esc(p.status || "In sprint")}</p>
+      <p class="meta">Lead: ${leadHTML(p.lead, photos)} · Status: ${esc(p.status || "In sprint")}${deadline ? ` · Deadline: ${esc(deadline)}` : ""}</p>
       ${cardLink(p, "Drive folder")}
       ${projectDetails(p)}
     </article>`;
@@ -174,7 +175,7 @@ function renderTeam(list) {
   el.innerHTML = TEAM_GROUPS.map((g) => {
     const members = list.filter((m) => (m.group || "Research Assistant and Volunteer") === g.key);
     if (!members.length) return "";
-    const heading = g.title ? `<h3 class="team-group-title">${esc(g.title)}</h3>` : "";
+    const heading = g.title ? `<h3 class="team-group-title">${esc(g.title)} (${members.length})</h3>` : "";
     return `${heading}<div class="cards team-cards">${members.map(teamCard).join("")}</div>`;
   }).join("");
 }
@@ -235,6 +236,23 @@ function renderDevelopment(list) {
     </article>`).join("");
 }
 
+function renderCollaborations(list) {
+  const el = document.getElementById("collab-list");
+  if (!el) return;
+  el.innerHTML = list.map((c) => {
+    const logo = (c.logo || "").trim();
+    const link = (c.link || "").trim();
+    const visual = logo ? `<img class="collab-logo" src="${esc(logo)}" alt="Logo of ${esc(c.name)}" loading="lazy">` : "";
+    const name = link ? `<a href="${esc(link)}" target="_blank" rel="noopener">${esc(c.name)} →</a>` : esc(c.name);
+    return `
+    <article class="card collab-card">
+      ${visual}
+      <h3>${name}</h3>
+      <p class="meta">${esc(c.note || "")}</p>
+    </article>`;
+  }).join("");
+}
+
 function renderFeatures(list) {
   const el = document.getElementById("feature-list");
   if (!el) return;
@@ -275,6 +293,10 @@ document.addEventListener("DOMContentLoaded", () => {
   loadJSON("data/experts.json").then(renderExperts).catch(() => {
     const el = document.getElementById("expert-list");
     if (el) el.innerHTML = "<p>Experts could not be loaded.</p>";
+  });
+  loadJSON("data/collaborations.json").then(renderCollaborations).catch(() => {
+    const el = document.getElementById("collab-list");
+    if (el) el.innerHTML = "<p>Collaborations could not be loaded.</p>";
   });
   loadJSON("data/development.json").then(renderDevelopment).catch(() => {
     const el = document.getElementById("development-list");
