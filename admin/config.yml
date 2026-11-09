@@ -1,8 +1,8 @@
 # Decap CMS configuration — Data 2 Decision website
 # HOW PERMISSIONS WORK (read README.md for the full setup):
-# - The comms team logs in with GitHub and can ONLY edit the six content
-#   collections below (Features, Projects, Publications, Team, Development,
-#   Student Lab).
+# - The comms team logs in with GitHub and can ONLY edit the seven content
+#   collections below (Features, Projects, Publications, Team, Expert Pool,
+#   Development, Student Lab).
 # - They cannot touch site structure, design or settings: those files are not
 #   exposed here, and branch protection + CODEOWNERS block them in GitHub.
 # - Phone numbers are NOT collected anywhere on this site: the data files
@@ -107,6 +107,24 @@ collections:
               - { label: "Photo", name: "photo", widget: "image", required: false, hint: "Square photo if available — otherwise initials are shown" }
               - { label: "Email", name: "email", widget: "string", required: false }
               - { label: "LinkedIn", name: "linkedin", widget: "string", required: false, hint: "Full profile URL, e.g. https://www.linkedin.com/in/..." }
+              - { label: "Note", name: "note", widget: "text", required: false }
+
+  - name: "experts"
+    label: "Expert Pool"
+    label_singular: "Expert"
+    files:
+      - file: "data/experts.json"
+        label: "Expert Pool"
+        name: "experts"
+        fields:
+          - label: "Experts"
+            name: "items"
+            widget: "list"
+            fields:
+              - { label: "Name", name: "name", widget: "string" }
+              - { label: "Role", name: "role", widget: "string" }
+              - { label: "Photo", name: "photo", widget: "image", required: false, hint: "Square photo if available — otherwise initials are shown" }
+              - { label: "Profile link", name: "link", widget: "string", required: false, hint: "CUB faculty page or LinkedIn profile URL" }
               - { label: "Note", name: "note", widget: "text", required: false }
 
   - name: "development"

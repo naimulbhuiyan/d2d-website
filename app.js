@@ -155,6 +155,27 @@ function renderTeam(list) {
   }).join("");
 }
 
+function renderExperts(list) {
+  const el = document.getElementById("expert-list");
+  if (!el) return;
+  el.innerHTML = list.map((m) => {
+    const photo = (m.photo || "").trim();
+    const link = (m.link || "").trim();
+    const visual = photo
+      ? `<img class="team-photo" src="${esc(photo)}" alt="Photo of ${esc(m.name)}" loading="lazy">`
+      : `<span class="team-initials" aria-hidden="true">${esc(initials(m.name))}</span>`;
+    const links = link ? `<p class="member-links"><a href="${esc(link)}" target="_blank" rel="noopener">Profile →</a></p>` : "";
+    return `
+    <article class="card team-card">
+      ${visual}
+      <span class="tag">${esc(m.role || "Expert")}</span>
+      <h3>${esc(m.name)}</h3>
+      ${links}
+      <p class="meta">${esc(m.note || "")}</p>
+    </article>`;
+  }).join("");
+}
+
 function renderStudentLab(data) {
   const sections = [
     ["bph-list", data.bph_statistics_lab, "No Statistics Lab members listed yet — the team adds them through the admin panel."],
@@ -226,6 +247,10 @@ document.addEventListener("DOMContentLoaded", () => {
   loadJSON("data/features.json").then(renderFeatures).catch(() => {
     const el = document.getElementById("feature-list");
     if (el) el.innerHTML = "<p>Features could not be loaded.</p>";
+  });
+  loadJSON("data/experts.json").then(renderExperts).catch(() => {
+    const el = document.getElementById("expert-list");
+    if (el) el.innerHTML = "<p>Experts could not be loaded.</p>";
   });
   loadJSON("data/development.json").then(renderDevelopment).catch(() => {
     const el = document.getElementById("development-list");
