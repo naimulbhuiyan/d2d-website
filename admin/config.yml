@@ -64,6 +64,7 @@ collections:
             fields:
               - { label: "ID", name: "id", widget: "string", hint: "Tracker ID, e.g. T001" }
               - { label: "Title", name: "title", widget: "string" }
+              - { label: "Theme", name: "theme", widget: "select", options: ["Mental Health", "TB", "Digital Health", "Infectious Disease", "Child Health", "Refugee & Humanitarian Health", "Tobacco", "General Research"], default: "General Research", hint: "Which theme section this project appears under" }
               - { label: "Lead", name: "lead", widget: "string" }
               - { label: "Type", name: "type", widget: "select", options: ["Research", "Conference", "Funding", "Webinar"] }
               - { label: "Status", name: "status", widget: "select", options: ["In sprint", "Backlog", "Submitted", "Under review", "Published", "Parked", "Closed"] }

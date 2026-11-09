@@ -91,10 +91,10 @@ function leadHTML(lead, map) {
   }).join(" · ");
 }
 
-function renderProjects(list, photos) {
-  const running = list.filter((p) => (p.status || "") !== "Backlog");
-  const other = list.filter((p) => (p.status || "") === "Backlog");
-  const renderCards = (items) => items.map((p) => `
+const PROJECT_THEMES = ["Mental Health", "TB", "Digital Health", "Infectious Disease", "Child Health", "Refugee & Humanitarian Health", "Tobacco", "General Research"];
+
+function projectCard(p, photos) {
+  return `
     <article class="card">
       <span class="tag">${esc(p.type || "Research")}</span>
       <h3>${esc(p.title)}</h3>
@@ -102,7 +102,17 @@ function renderProjects(list, photos) {
       <p class="meta">Lead: ${leadHTML(p.lead, photos)} · Status: ${esc(p.status || "In sprint")}</p>
       ${cardLink(p, "Drive folder")}
       ${projectDetails(p)}
-    </article>`).join("");
+    </article>`;
+}
+
+function renderProjects(list, photos) {
+  const running = list.filter((p) => (p.status || "") !== "Backlog");
+  const other = list.filter((p) => (p.status || "") === "Backlog");
+  const renderCards = (items) => PROJECT_THEMES.map((theme) => {
+    const themed = items.filter((p) => (p.theme || "General Research") === theme);
+    if (!themed.length) return "";
+    return `<h3 class="team-group-title">${esc(theme)}</h3><div class="cards">${themed.map((p) => projectCard(p, photos)).join("")}</div>`;
+  }).join("");
   const el = document.getElementById("project-list");
   if (el) el.innerHTML = renderCards(running);
   const otherEl = document.getElementById("project-list-other");
