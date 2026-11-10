@@ -93,6 +93,10 @@ a { color: var(--teal-700); }
   background: #fff; border-radius: 8px; padding: 10px; margin-bottom: 10px;
 }
 .collab-card h3 a { text-decoration: none; }
+
+/* Achievements */
+.achievement-card { overflow: hidden; }
+.achievement-photo { display: block; width: calc(100% + 36px); height: 200px; object-fit: cover; margin: -18px -18px 12px; }
 .collab-card h3 a:hover { text-decoration: underline; }
 
 /* Team cards */

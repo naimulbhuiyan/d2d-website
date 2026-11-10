@@ -253,6 +253,25 @@ function renderCollaborations(list) {
   }).join("");
 }
 
+function renderAchievements(list) {
+  const el = document.getElementById("achievement-list");
+  if (!el) return;
+  const sorted = [...list].sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
+  el.innerHTML = sorted.map((a) => {
+    const photo = (a.photo || "").trim();
+    const link = (a.link || "").trim();
+    const visual = photo ? `<img class="achievement-photo" src="${esc(photo)}" alt="Photo: ${esc(a.title)}" loading="lazy">` : "";
+    return `
+    <article class="card achievement-card">
+      ${visual}
+      <span class="tag">${esc(a.date || "")}</span>
+      <h3>${esc(a.title)}</h3>
+      <p>${esc(a.description || "")}</p>
+      ${link ? `<p><a href="${esc(link)}" target="_blank" rel="noopener">View on Facebook →</a></p>` : ""}
+    </article>`;
+  }).join("");
+}
+
 function renderFeatures(list) {
   const el = document.getElementById("feature-list");
   if (!el) return;
@@ -285,6 +304,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const el = document.getElementById("publication-list");
       if (el) el.innerHTML = "<li>Publications could not be loaded.</li>";
     });
+  });
+  loadJSON("data/achievements.json").then(renderAchievements).catch(() => {
+    const el = document.getElementById("achievement-list");
+    if (el) el.innerHTML = "<p>Achievements could not be loaded.</p>";
   });
   loadJSON("data/features.json").then(renderFeatures).catch(() => {
     const el = document.getElementById("feature-list");

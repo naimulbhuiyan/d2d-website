@@ -1,8 +1,8 @@
 # Decap CMS configuration — Data 2 Decision website
 # HOW PERMISSIONS WORK (read README.md for the full setup):
-# - The comms team logs in with GitHub and can ONLY edit the seven content
+# - The comms team logs in with GitHub and can ONLY edit the nine content
 #   collections below (Features, Projects, Publications, Team, Expert Pool,
-#   Development, Student Lab).
+#   Development, Student Lab, Collaboration, Achievements).
 # - They cannot touch site structure, design or settings: those files are not
 #   exposed here, and branch protection + CODEOWNERS block them in GitHub.
 # - Phone numbers are NOT collected anywhere on this site: the data files
@@ -201,3 +201,21 @@ collections:
               - { label: "Logo", name: "logo", widget: "image", required: false, hint: "Logo image — wide logos display best" }
               - { label: "Link", name: "link", widget: "string", required: false, hint: "Website or Facebook page URL" }
               - { label: "Note", name: "note", widget: "text", required: false }
+
+  - name: "achievements"
+    label: "Achievements"
+    label_singular: "Achievement"
+    files:
+      - file: "data/achievements.json"
+        label: "Achievements"
+        name: "achievements"
+        fields:
+          - label: "Achievements"
+            name: "items"
+            widget: "list"
+            fields:
+              - { label: "Title", name: "title", widget: "string" }
+              - { label: "Date", name: "date", widget: "datetime", date_format: "YYYY-MM-DD", time_format: false }
+              - { label: "Description", name: "description", widget: "text" }
+              - { label: "Photo", name: "photo", widget: "image", required: false, hint: "Photo from the Facebook post" }
+              - { label: "Facebook link", name: "link", widget: "string", required: false, hint: "Link to the Facebook post" }
