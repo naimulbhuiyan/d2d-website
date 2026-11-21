@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Member Dashboard — Data 2 Decision (D2D)</title>
+  <meta name="description" content="Private dashboard for D2D team members: your details, CV and the PI's suggestions.">
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    // Gated page: no login session, no dashboard.
+    if (!sessionStorage.getItem("d2d-member")) {
+      window.location.replace("login.html");
+    }
+  </script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="index.html">
+        <img src="assets/logo.png" alt="Data 2 Decision logo" class="brand-logo">
+        <span class="brand-text"><strong>Data 2 Decision</strong><small>Research Team · D2D</small></span>
+      </a>
+      <nav class="main-nav">
+        <a href="index.html">Home</a>
+        <a href="research.html">Research</a>
+        <a href="development.html">Development</a>
+        <a href="student-lab.html">Student Lab</a>
+        <a href="login.html" class="nav-admin active">Member Login</a>
+        <a href="admin/" class="nav-admin">Team Login</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <div class="wrap">
+        <h1>Member Dashboard</h1>
+        <p class="lede-dark">Your details, CV and the PI's suggestions for you — visible only after login. Pick your name below.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="card form-card" id="picker-card">
+          <label for="member-picker">Who are you?</label>
+          <select id="member-picker">
+            <option value="">— Select your name —</option>
+          </select>
+          <p class="small form-note">Changes you send go live only after the PI approves them.</p>
+          <div class="dashboard-actions">
+            <button class="btn btn-secondary" id="logout-btn" type="button">Log out</button>
+          </div>
+        </div>
+
+        <div id="profile-area" style="display: none;">
+          <div class="card">
+            <div class="dashboard-profile" id="profile-head"></div>
+            <h3>Your details</h3>
+            <p id="profile-details"></p>
+            <h3>Your CV</h3>
+            <p id="profile-cv"></p>
+            <h3>Suggestions from the PI</h3>
+            <div id="profile-suggestions"></div>
+          </div>
+
+          <div class="card form-card" style="margin-top: 16px;">
+            <h3>Update your details</h3>
+            <p class="small">Edit the fields below, then send the update. It goes to the PI by email for approval — nothing changes on the site until then.</p>
+            <form id="edit-form">
+              <label for="edit-email">Email</label>
+              <input type="email" id="edit-email" name="email">
+              <label for="edit-linkedin">LinkedIn profile URL</label>
+              <input type="text" id="edit-linkedin" name="linkedin" placeholder="https://www.linkedin.com/in/...">
+              <label for="edit-note">Note (what you work on)</label>
+              <textarea id="edit-note" name="note"></textarea>
+              <label for="edit-cv">CV (link or short summary)</label>
+              <input type="text" id="edit-cv" name="cv" placeholder="Link to your CV, or a one-line summary">
+              <div class="dashboard-actions">
+                <button class="btn btn-teal" type="submit">Send update to the PI</button>
+                <button class="btn btn-secondary" id="download-btn" type="button">Download my updated details (.json)</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <img src="assets/logo.png" alt="D2D logo" class="footer-logo">
+      <p>© <span id="year">2026</span> Data 2 Decision (D2D) Research Team · Dhaka, Bangladesh</p>
+      <p>Follow us on <a href="https://www.facebook.com/p/Data-2-Decision-100027231354994/">Facebook</a> · <a href="https://www.linkedin.com/company/data-to-decision/">LinkedIn</a></p>
+    </div>
+  </footer>
+
+  <script>
+    // Member dashboard: loads the public team list (photo, name, role, group)
+    // and the private member details (email, LinkedIn, note, CV, suggestions).
+    // No public page loads the private file — only this gated page does.
+    var PI_EMAIL = "data2decision20@gmail.com";
+
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    function esc(s) {
+      return String(s ?? "").replace(/[&<>"']/g, function (c) {
+        return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+      });
+    }
+    function initials(name) {
+      return String(name || "?").split(/\s+/).filter(Boolean).slice(0, 2)
+        .map(function (w) { return w[0].toUpperCase(); }).join("");
+    }
+    function loadJSON(path) {
+      return fetch(path).then(function (res) {
+        if (!res.ok) throw new Error("Could not load " + path);
+        return res.json();
+      });
+    }
+
+    var teamPublic = [];
+    var teamPrivate = {};
+    var currentName = "";
+
+    function cvHTML(cv) {
+      var v = (cv || "").trim();
+      if (!v) return "<span class=\"meta\">No CV added yet — add a link or a short summary below.</span>";
+      if (/^https?:\/\//i.test(v)) {
+        return "<a href=\"" + esc(v) + "\" target=\"_blank\" rel=\"noopener\">View CV \u2192</a>";
+      }
+      return esc(v);
+    }
+
+    function showMember(name) {
+      currentName = name;
+      var area = document.getElementById("profile-area");
+      if (!name) { area.style.display = "none"; return; }
+      var pub = teamPublic.find(function (m) { return m.name === name; }) || {};
+      var priv = teamPrivate[name] || {};
+      var photo = (pub.photo || "").trim();
+      var visual = photo
+        ? "<img src=\"" + esc(photo) + "\" alt=\"Photo of " + esc(name) + "\">"
+        : "<span class=\"team-initials\" aria-hidden=\"true\">" + esc(initials(name)) + "</span>";
+      document.getElementById("profile-head").innerHTML = visual +
+        "<div><h3>" + esc(name) + "</h3><p class=\"meta\">" +
+        esc(pub.role || "Team member") + " · " + esc(pub.group || "") + "</p></div>";
+      var email = (priv.email || "").trim();
+      var linkedin = (priv.linkedin || "").trim();
+      var note = (priv.note || "").trim();
+      document.getElementById("profile-details").innerHTML =
+        (email ? "Email: <a href=\"mailto:" + esc(email) + "\">" + esc(email) + "</a><br>" : "") +
+        (linkedin ? "LinkedIn: <a href=\"" + esc(linkedin) + "\" target=\"_blank\" rel=\"noopener\">" + esc(linkedin) + "</a><br>" : "") +
+        (note ? "Note: " + esc(note) : "<span class=\"meta\">No note yet.</span>");
+      document.getElementById("profile-cv").innerHTML = cvHTML(priv.cv);
+      var sugg = Array.isArray(priv.suggestions) ? priv.suggestions.filter(function (s) { return String(s || "").trim(); }) : [];
+      document.getElementById("profile-suggestions").innerHTML = sugg.length
+        ? "<ul class=\"suggestion-list\">" + sugg.map(function (s) { return "<li>" + esc(s) + "</li>"; }).join("") + "</ul>"
+        : "<p class=\"meta\">No suggestions yet.</p>";
+      document.getElementById("edit-email").value = priv.email || "";
+      document.getElementById("edit-linkedin").value = priv.linkedin || "";
+      document.getElementById("edit-note").value = priv.note || "";
+      document.getElementById("edit-cv").value = priv.cv || "";
+      area.style.display = "block";
+    }
+
+    Promise.all([loadJSON("data/team.json"), loadJSON("data/members-private.json")])
+      .then(function (results) {
+        teamPublic = results[0] || [];
+        (results[1] || []).forEach(function (m) { teamPrivate[m.name] = m; });
+        var picker = document.getElementById("member-picker");
+        teamPublic.forEach(function (m) {
+          var opt = document.createElement("option");
+          opt.value = m.name;
+          opt.textContent = m.name;
+          picker.appendChild(opt);
+        });
+        picker.addEventListener("change", function () { showMember(picker.value); });
+      })
+      .catch(function () {
+        document.getElementById("picker-card").innerHTML =
+          "<p>Member details could not be loaded. Please try again later.</p>";
+      });
+
+    document.getElementById("edit-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      if (!currentName) return;
+      var lines = [
+        "Name: " + currentName,
+        "Email: " + document.getElementById("edit-email").value.trim(),
+        "LinkedIn: " + document.getElementById("edit-linkedin").value.trim(),
+        "Note: " + document.getElementById("edit-note").value.trim(),
+        "CV: " + document.getElementById("edit-cv").value.trim(),
+      ];
+      var subject = "D2D profile update — " + currentName;
+      var body = "Please update my D2D profile as follows (changes go live only after your approval):\n\n" +
+        lines.join("\n");
+      window.location.href = "mailto:" + PI_EMAIL +
+        "?subject=" + encodeURIComponent(subject) +
+        "&body=" + encodeURIComponent(body);
+    });
+
+    document.getElementById("download-btn").addEventListener("click", function () {
+      if (!currentName) return;
+      var data = {
+        name: currentName,
+        email: document.getElementById("edit-email").value.trim(),
+        linkedin: document.getElementById("edit-linkedin").value.trim(),
+        note: document.getElementById("edit-note").value.trim(),
+        cv: document.getElementById("edit-cv").value.trim(),
+      };
+      var blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "d2d-profile-" + currentName.toLowerCase().replace(/[^a-z0-9]+/g, "-") + ".json";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+    });
+
+    document.getElementById("logout-btn").addEventListener("click", function () {
+      sessionStorage.removeItem("d2d-member");
+      window.location.replace("index.html");
+    });
+  </script>
+</body>
+</html>

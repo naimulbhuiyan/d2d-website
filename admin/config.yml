@@ -92,15 +92,24 @@ collections:
               - { label: "Web link", name: "web", widget: "string", required: false, hint: "Where submitted — journal or conference website" }
               - { label: "Drive folder", name: "drive", widget: "string", required: false, hint: "Drive folder URL for the manuscript" }
 
+  # TEAM — SPLIT INTO PUBLIC AND MEMBER-ONLY (see README "Member login"):
+  # - data/team.json holds ONLY the public fields (name, role, group, photo)
+  #   shown on the home page Team section.
+  # - data/members-private.json holds the member-only fields (email, LinkedIn,
+  #   note, CV, suggestions). It is loaded ONLY by dashboard.html after a
+  #   member logs in — no public page fetches it.
+  # - Keep the two lists in the same order, with the same names, so each
+  #   member's public card and private details match up.
+  # - Phone numbers are still never collected (see the header comment above).
   - name: "team"
     label: "Team"
     label_singular: "Team member"
     files:
       - file: "data/team.json"
-        label: "Team"
-        name: "team"
+        label: "Team — public"
+        name: "team_public"
         fields:
-          - label: "Team members"
+          - label: "Team members (public)"
             name: "items"
             widget: "list"
             fields:
@@ -108,9 +117,20 @@ collections:
               - { label: "Role", name: "role", widget: "string" }
               - { label: "Group", name: "group", widget: "select", options: ["Founder", "Coordinators", "Comm. Focal", "Research Assistant and Volunteer"], default: "Research Assistant and Volunteer", hint: "Which section of the Team page this person appears in" }
               - { label: "Photo", name: "photo", widget: "image", required: false, hint: "Square photo if available — otherwise initials are shown" }
+      - file: "data/members-private.json"
+        label: "Team — member details (login only)"
+        name: "team_private"
+        fields:
+          - label: "Member details (login only)"
+            name: "items"
+            widget: "list"
+            fields:
+              - { label: "Name", name: "name", widget: "string", hint: "Must match the name in the public team list, and stay in the same order" }
               - { label: "Email", name: "email", widget: "string", required: false }
               - { label: "LinkedIn", name: "linkedin", widget: "string", required: false, hint: "Full profile URL, e.g. https://www.linkedin.com/in/..." }
               - { label: "Note", name: "note", widget: "text", required: false }
+              - { label: "CV link or summary", name: "cv", widget: "string", required: false, hint: "Link to the member's CV, or a one-line summary. Shown only on the member dashboard." }
+              - { label: "Suggestions for this member", name: "suggestions", widget: "list", required: false, hint: "Only the PI writes these. They show only on the member dashboard, after login.", field: { label: "Suggestion", name: "suggestion", widget: "string" } }
 
   - name: "experts"
     label: "Expert Pool"

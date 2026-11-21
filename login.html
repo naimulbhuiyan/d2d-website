@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Member Login — Data 2 Decision (D2D)</title>
+  <meta name="description" content="D2D team members log in here with the shared member password to open their private dashboard.">
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="index.html">
+        <img src="assets/logo.png" alt="Data 2 Decision logo" class="brand-logo">
+        <span class="brand-text"><strong>Data 2 Decision</strong><small>Research Team · D2D</small></span>
+      </a>
+      <nav class="main-nav">
+        <a href="index.html">Home</a>
+        <a href="research.html">Research</a>
+        <a href="development.html">Development</a>
+        <a href="student-lab.html">Student Lab</a>
+        <a href="login.html" class="nav-admin active">Member Login</a>
+        <a href="admin/" class="nav-admin">Team Login</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <div class="wrap">
+        <h1>Member Login</h1>
+        <p class="lede-dark">For D2D team members only. Log in with the shared member password to open your private dashboard — your details, CV and the PI's suggestions for you.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="card form-card">
+          <form id="login-form">
+            <label for="password">Member password</label>
+            <input type="password" id="password" name="password" autocomplete="current-password" placeholder="Enter the shared member password" required>
+            <button class="btn btn-teal" type="submit">Log in</button>
+            <p class="form-error" id="login-error" role="alert">ভুল পাসওয়ার্ড — আবার চেষ্টা করুন।<br>Wrong password — try again.</p>
+          </form>
+          <p class="small form-note">Forgot the password? Ask the PI (Naimul). The password is the same for all members. This login is for your own dashboard only — the <a href="admin/">Team Login</a> is a separate GitHub login for the comms team.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <img src="assets/logo.png" alt="D2D logo" class="footer-logo">
+      <p>© <span id="year">2026</span> Data 2 Decision (D2D) Research Team · Dhaka, Bangladesh</p>
+      <p>Follow us on <a href="https://www.facebook.com/p/Data-2-Decision-100027231354994/">Facebook</a> · <a href="https://www.linkedin.com/company/data-to-decision/">LinkedIn</a></p>
+    </div>
+  </footer>
+
+  <script>
+    // Member login: the password is checked as a SHA-256 hash only.
+    // The plaintext password is never stored in this site or in the repo.
+    var MEMBER_PASSWORD_HASH = "40dd1f10a43d8cb7d1b47baaf386811ee95c04bc0d6156ab4efcad570de58d1a";
+
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    function sha256Hex(text) {
+      var data = new TextEncoder().encode(text);
+      return crypto.subtle.digest("SHA-256", data).then(function (hash) {
+        return Array.from(new Uint8Array(hash))
+          .map(function (b) { return b.toString(16).padStart(2, "0"); })
+          .join("");
+      });
+    }
+
+    document.getElementById("login-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var errorEl = document.getElementById("login-error");
+      var password = document.getElementById("password").value;
+      if (!window.crypto || !crypto.subtle) {
+        errorEl.textContent = "This browser cannot check the password securely — please use a modern browser over HTTPS.";
+        errorEl.classList.add("show");
+        return;
+      }
+      sha256Hex(password).then(function (hex) {
+        if (hex === MEMBER_PASSWORD_HASH) {
+          sessionStorage.setItem("d2d-member", String(Date.now()));
+          window.location.replace("dashboard.html");
+        } else {
+          errorEl.classList.add("show");
+          document.getElementById("password").value = "";
+          document.getElementById("password").focus();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

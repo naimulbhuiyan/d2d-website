@@ -35,8 +35,9 @@ function cardLink(p, label) {
 }
 
 // Lead-person photos: small circular photos from the team data (the same
-// files as the home page team cards), linked to the person's LinkedIn when
-// known, otherwise to the home page Team section.
+// files as the home page team cards), linked to the home page Team section.
+// (LinkedIn links are no longer public — they live in members-private.json
+// and are shown only on the member dashboard after login.)
 function normalizeName(s) {
   return String(s || "").toLowerCase()
     .replace(/\b(dr|md|mst|most|prof)\.?/g, "")
@@ -80,8 +81,7 @@ function leadHTML(lead, map) {
   return raw.split(/[/+,]/).map((s) => s.trim()).filter(Boolean).map((name) => {
     const person = findPerson(name, map);
     const photo = person && (person.photo || "").trim();
-    const linkedin = person && (person.linkedin || "").trim();
-    const href = linkedin || "index.html#team";
+    const href = "index.html#team";
     const ext = href.startsWith("http");
     const target = ext ? ' target="_blank" rel="noopener"' : "";
     const img = photo
@@ -141,24 +141,19 @@ function renderPublications(list, photos) {
   if (n) n.textContent = underReview.length;
 }
 
+// Public team cards show ONLY photo, name, role and group. Member contact
+// details (email, LinkedIn, note) live in data/members-private.json and are
+// shown only on the member dashboard after login (dashboard.html).
 function teamCard(m) {
   const photo = (m.photo || "").trim();
-  const email = (m.email || "").trim();
-  const linkedin = (m.linkedin || "").trim();
   const visual = photo
     ? `<img class="team-photo" src="${esc(photo)}" alt="Photo of ${esc(m.name)}" loading="lazy">`
     : `<span class="team-initials" aria-hidden="true">${esc(initials(m.name))}</span>`;
-  const links = [
-    email ? `<a href="mailto:${esc(email)}">${esc(email)}</a>` : "",
-    linkedin ? `<a href="${esc(linkedin)}" target="_blank" rel="noopener">LinkedIn →</a>` : "",
-  ].filter(Boolean).join(" · ");
   return `
     <article class="card team-card">
       ${visual}
       <span class="tag">${esc(m.role || "Team member")}</span>
       <h3>${esc(m.name)}</h3>
-      ${links ? `<p class="member-links">${links}</p>` : ""}
-      <p class="meta">${esc(m.note || "")}</p>
     </article>`;
 }
 

@@ -20,7 +20,8 @@ The login helper runs on Vercel because the Cloudflare account got locked out
 | `app.js` | Loads the content files and renders each page (no build step) |
 | `data/projects.json` | The 16 projects: 13 in sprint + 3 backlog (Cumilla Research, University Student, Tobacco). Each entry's `link` is its Drive folder URL. |
 | `data/publications.json` | Manuscripts under review |
-| `data/team.json` | Team members and roles — photo, email and LinkedIn shown on Home; phone numbers are never stored here (the data files are public) |
+| `data/team.json` | Team members — PUBLIC fields only (name, role, group, photo), shown on the home page Team section. No email, LinkedIn or note here. |
+| `data/members-private.json` | Team members — member-only fields (email, LinkedIn, note, CV, suggestions). Loaded only by `dashboard.html` after a member logs in; no public page fetches it. Phone numbers are never stored here (see "Member login" below). |
 | `data/development.json` | Development work shown on the Development page: 4 team items + 13 dashboards/tools from Naimul's personal site (sites.google.com/view/naimulislam2024/project). |
 | `data/student-lab.json` | Student Lab: BPH Statistics Lab, MPH Thesis, MPH Projects |
 | `data/features.json` | News / features posts |
@@ -83,7 +84,44 @@ rebuilds and republishes the site automatically.
 5. The admin (Naimul) approves it in GitHub. Then Cloudflare rebuilds the site
    automatically (about a minute).
 
-## Permissions — comms team can only upload content
+## Member login
+
+Team members have their own login, separate from the comms team's GitHub
+login (`Team Login` → `/admin/`).
+
+**Flow:** a member clicks **Member Login** in the nav (or opens
+`https://d2d-7k4.pages.dev/login.html`), enters the shared member password,
+and is taken to their private dashboard (`dashboard.html`). There they pick
+their name and see their details, CV and the PI's suggestions for them, and
+can send updates to their own email, LinkedIn, note and CV.
+
+**Password:** the same password works for every member. It is checked in
+`login.html` as a SHA-256 hash only — the plaintext password is never stored
+in the repo, in any file, or in this README. The PI gives the password to
+members directly (in person or by message). A successful login sets a
+`sessionStorage` flag that lasts only until the browser tab is closed; logging
+out clears it, and `dashboard.html` redirects to `login.html` without it.
+
+**Privacy:** the home page Team section shows only photo, name, role and
+group. Email, LinkedIn, note, CV and suggestions are never shown publicly —
+they live in `data/members-private.json`, which no public page fetches.
+Honest limit: this is a static site, so the private file is still a file on
+the server — anyone who guesses its URL could open it. It is hidden from the
+site's pages, not locked by a server. Phone numbers are never collected at
+all, for the same reason. If real access control is ever needed, that takes a
+backend — which this free static setup does not have.
+
+**Profile edits:** a member's Save sends an email to
+`data2decision20@gmail.com` (subject "D2D profile update — <name>") with the
+updated fields, and the member can also download their updated details as a
+`.json` file. Nothing goes live from the dashboard — the PI approves each
+update first, then updates the data files (through the admin panel or GitHub).
+
+**Admin panel:** the Decap CMS team collection is split the same way —
+"Team — public" edits `data/team.json`, "Team — member details (login only)"
+edits `data/members-private.json` (including the new `cv` and `suggestions`
+fields; only the PI writes suggestions). Keep both lists in the same order
+with the same names.
 
 This is enforced in three layers:
 
