@@ -271,12 +271,17 @@ function renderFeatures(list) {
   const el = document.getElementById("feature-list");
   if (!el) return;
   const sorted = [...list].sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
-  el.innerHTML = sorted.map((f) => `
-    <article class="card">
+  el.innerHTML = sorted.map((f) => {
+    const photo = (f.photo || "").trim();
+    const visual = photo ? `<img class="feature-photo" src="${esc(photo)}" alt="Photo: ${esc(f.title)}" loading="lazy">` : "";
+    return `
+    <article class="card feature-card">
+      ${visual}
       <span class="tag">${esc(f.date || "")}</span>
       <h3>${esc(f.title)}</h3>
       <p>${esc(f.body || "")}</p>
-    </article>`).join("");
+    </article>`;
+  }).join("");
 }
 
 document.addEventListener("DOMContentLoaded", () => {
