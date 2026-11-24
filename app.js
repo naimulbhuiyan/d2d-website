@@ -95,13 +95,14 @@ const PROJECT_THEMES = ["Mental Health", "TB", "Digital Health", "Infectious Dis
 
 function projectCard(p, photos) {
   const deadline = (p.deadline || "").trim();
+  // Drive folder links are NOT shown here — members see them on the
+  // dashboard after login (dashboard.html).
   return `
     <article class="card">
       <span class="tag">${esc(p.type || "Research")}</span>${deadline ? `<span class="tag deadline-tag">Deadline: ${esc(deadline)}</span>` : ""}
       <h3>${esc(p.title)}</h3>
       <p>${esc(p.description || "")}</p>
       <p class="meta">Lead: ${leadHTML(p.lead, photos)} · Status: ${esc(p.status || "In sprint")}</p>
-      ${cardLink(p, "Drive folder")}
       ${projectDetails(p)}
     </article>`;
 }
@@ -129,7 +130,8 @@ function renderPublications(list, photos) {
   el.innerHTML = list.map((p) => {
     const links = [
       (p.web || "").trim() ? `<a href="${esc(p.web)}" target="_blank" rel="noopener">Submitted to →</a>` : "",
-      (p.drive || "").trim() ? `<a href="${esc(p.drive)}" target="_blank" rel="noopener">Drive folder →</a>` : "",
+      // Drive folder links are NOT shown here — members see them on the
+      // dashboard after login (dashboard.html).
     ].filter(Boolean).join(" · ");
     const lead = (p.lead || "").trim();
     return `<li><span class="pub-topic">${esc(p.topic)}</span>
