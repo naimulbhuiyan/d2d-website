@@ -299,3 +299,8 @@ img { max-width: 100%; }
 
 .page-hero .hero-eyebrow { margin: 0 0 10px; }
 .footer-bottom p { margin: 0; }
+
+/* Settings gear icon in the header (right side): opens the Team Login admin panel. */
+.main-nav a.nav-settings { padding: 8px; display: inline-flex; align-items: center; color: var(--ink); }
+.main-nav a.nav-settings svg { display: block; }
+.main-nav a.nav-settings:hover { background: var(--teal-100); }
