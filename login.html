@@ -4,12 +4,24 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Member Login — Data 2 Decision (D2D)</title>
-  <meta name="description" content="D2D team members log in here with the shared member password to open their private dashboard.">
+  <meta name="description" content="D2D team members log in here with their own email and password to open their private dashboard.">
   <link rel="icon" type="image/png" href="assets/logo.png">
   <link rel="stylesheet" href="styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // Individual member login via Supabase Auth (free project "d2d-members").
+    // Each member logs in with their own email. First password for everyone is
+    // D2D1234 — members change it from their dashboard after first login.
+    // The publishable (anon) key below is public by design; it is NOT a secret.
+    var SUPABASE_URL = "https://jpbdsrqfigyapistvypc.supabase.co";
+    var SUPABASE_ANON_KEY = "sb_publishable_rWcbNiwa80qkuKESfAMVwQ_KYNtXoQQ";
+    var supabaseClient = window.supabase
+      ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+      : null;
+  </script>
 </head>
 <body>
   <header class="site-header">
@@ -33,7 +45,7 @@
     <section class="page-hero">
       <div class="wrap">
         <h1>Member Login</h1>
-        <p class="lede-dark">For D2D team members only. Log in with the shared member password to open your private dashboard — your details, CV and the PI's suggestions for you.</p>
+        <p class="lede-dark">For D2D team members only. Log in with your own email and password to open your private dashboard — your details, CV and the PI's suggestions for you.</p>
       </div>
     </section>
 
@@ -41,12 +53,14 @@
       <div class="wrap">
         <div class="card form-card">
           <form id="login-form">
-            <label for="password">Member password</label>
-            <input type="password" id="password" name="password" autocomplete="current-password" placeholder="Enter the shared member password" required>
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" autocomplete="username" placeholder="you@example.com" required>
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" autocomplete="current-password" placeholder="Your password" required>
             <button class="btn btn-teal" type="submit">Log in</button>
-            <p class="form-error" id="login-error" role="alert">ভুল পাসওয়ার্ড — আবার চেষ্টা করুন।<br>Wrong password — try again.</p>
+            <p class="form-error" id="login-error" role="alert">ভুল ইমেইল বা পাসওয়ার্ড — আবার চেষ্টা করুন।<br>Wrong email or password — try again.</p>
           </form>
-          <p class="small form-note">Forgot the password? Ask the PI (Naimul). The password is the same for all members. This login is for your own dashboard only — the <a href="admin/">Team Login</a> is a separate GitHub login for the comms team.</p>
+          <p class="small form-note">First time logging in? Your password is <strong>D2D1234</strong> — please change it from your dashboard after logging in. Forgot your password, or your new password does not work? Ask the PI (Naimul) or an admin — they can reset it for you. This login is for your own dashboard only — the <a href="admin/">Team Login</a> is a separate GitHub login for the comms team.</p>
         </div>
       </div>
     </section>
@@ -83,40 +97,48 @@
   </footer>
 
   <script>
-    // Member login: the password is checked as a SHA-256 hash only.
-    // The plaintext password is never stored in this site or in the repo.
-    var MEMBER_PASSWORD_HASH = "f78aad32eb926045a85cb0c2f9157a9f73934afe26222a175e949dce27e51cc4";
-
     document.getElementById("year").textContent = new Date().getFullYear();
 
-    function sha256Hex(text) {
-      var data = new TextEncoder().encode(text);
-      return crypto.subtle.digest("SHA-256", data).then(function (hash) {
-        return Array.from(new Uint8Array(hash))
-          .map(function (b) { return b.toString(16).padStart(2, "0"); })
-          .join("");
+    var errorEl = document.getElementById("login-error");
+    var submitBtn = document.querySelector("#login-form button[type=submit]");
+
+    function showError(msg) {
+      if (msg) errorEl.innerHTML = msg;
+      errorEl.classList.add("show");
+    }
+
+    // Already logged in? Go straight to the dashboard.
+    if (supabaseClient) {
+      supabaseClient.auth.getSession().then(function (res) {
+        if (res.data && res.data.session) window.location.replace("dashboard.html");
       });
     }
 
     document.getElementById("login-form").addEventListener("submit", function (e) {
       e.preventDefault();
-      var errorEl = document.getElementById("login-error");
-      var password = document.getElementById("password").value;
-      if (!window.crypto || !crypto.subtle) {
-        errorEl.textContent = "This browser cannot check the password securely — please use a modern browser over HTTPS.";
-        errorEl.classList.add("show");
+      errorEl.classList.remove("show");
+      if (!supabaseClient) {
+        showError("Could not reach the login service — please check your connection and try again.");
         return;
       }
-      sha256Hex(password).then(function (hex) {
-        if (hex === MEMBER_PASSWORD_HASH) {
-          sessionStorage.setItem("d2d-member", String(Date.now()));
+      var email = document.getElementById("email").value.trim();
+      var password = document.getElementById("password").value;
+      submitBtn.disabled = true;
+      supabaseClient.auth.signInWithPassword({ email: email, password: password })
+        .then(function (res) {
+          submitBtn.disabled = false;
+          if (res.error) {
+            showError();
+            document.getElementById("password").value = "";
+            document.getElementById("password").focus();
+            return;
+          }
           window.location.replace("dashboard.html");
-        } else {
-          errorEl.classList.add("show");
-          document.getElementById("password").value = "";
-          document.getElementById("password").focus();
-        }
-      });
+        })
+        .catch(function () {
+          submitBtn.disabled = false;
+          showError("Could not reach the login service — please check your connection and try again.");
+        });
     });
   </script>
 </body>

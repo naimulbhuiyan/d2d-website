@@ -10,11 +10,16 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    // Gated page: no login session, no dashboard.
-    if (!sessionStorage.getItem("d2d-member")) {
-      window.location.replace("login.html");
-    }
+    // Gated page: individual login via Supabase Auth (free project "d2d-members").
+    // No Supabase session, no dashboard. The publishable (anon) key below is
+    // public by design; it is NOT a secret.
+    var SUPABASE_URL = "https://jpbdsrqfigyapistvypc.supabase.co";
+    var SUPABASE_ANON_KEY = "sb_publishable_rWcbNiwa80qkuKESfAMVwQ_KYNtXoQQ";
+    var supabaseClient = window.supabase
+      ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+      : null;
   </script>
 </head>
 <body>
@@ -39,18 +44,14 @@
     <section class="page-hero">
       <div class="wrap">
         <h1>Member Dashboard</h1>
-        <p class="lede-dark">Your details, CV and the PI's suggestions for you — visible only after login. Pick your name below.</p>
+        <p class="lede-dark">Your details, CV and the PI's suggestions for you — visible only after login.</p>
       </div>
     </section>
 
     <section class="section">
       <div class="wrap">
-        <div class="card form-card" id="picker-card">
-          <label for="member-picker">Who are you?</label>
-          <select id="member-picker">
-            <option value="">— Select your name —</option>
-          </select>
-          <p class="small form-note">Changes you send go live only after the PI approves them.</p>
+        <div class="card form-card" id="session-card">
+          <p id="session-line">Checking your login…</p>
           <div class="dashboard-actions">
             <button class="btn btn-secondary" id="logout-btn" type="button">Log out</button>
           </div>
@@ -84,6 +85,27 @@
                 <button class="btn btn-secondary" id="download-btn" type="button">Download my updated details (.json)</button>
               </div>
             </form>
+          </div>
+
+          <div class="card form-card" style="margin-top: 16px;">
+            <h3>Change your password</h3>
+            <p class="small">Only you can change your password here. If you forget it, ask the PI or an admin to reset it for you.</p>
+            <form id="password-form">
+              <label for="new-password">New password</label>
+              <input type="password" id="new-password" name="new-password" autocomplete="new-password" placeholder="At least 6 characters" required minlength="6">
+              <label for="confirm-password">Confirm new password</label>
+              <input type="password" id="confirm-password" name="confirm-password" autocomplete="new-password" placeholder="Repeat the new password" required minlength="6">
+              <div class="dashboard-actions">
+                <button class="btn btn-teal" type="submit">Change password</button>
+              </div>
+              <p class="form-error" id="password-error" role="alert"></p>
+              <p class="small" id="password-ok" style="display: none; color: #0a7a5c;">Your password has been changed.</p>
+            </form>
+          </div>
+
+          <div class="card form-card" id="admin-card" style="display: none; margin-top: 16px;">
+            <h3>Admin</h3>
+            <p class="small">You are an admin. You can reset any member's password from the Supabase dashboard: <a href="https://supabase.com/dashboard/project/jpbdsrqfigyapistvypc/auth/users" target="_blank" rel="noopener">Authentication → Users</a> — open a member, then “Reset password”. Members can also change their own password here.</p>
           </div>
         </div>
       </div>
@@ -121,9 +143,11 @@
   </footer>
 
   <script>
-    // Member dashboard: loads the public team list (photo, name, role, group)
-    // and the private member details (email, LinkedIn, note, CV, suggestions).
-    // No public page loads the private file — only this gated page does.
+    // Member dashboard: the logged-in member is identified by their Supabase
+    // account email. Their public team entry (photo, name, role, group) and
+    // private details (email, LinkedIn, note, CV, suggestions) are matched
+    // by name/email from the site's own data files. No public page loads the
+    // private file — only this gated page does.
     var PI_EMAIL = "data2decision20@gmail.com";
 
     document.getElementById("year").textContent = new Date().getFullYear();
@@ -147,6 +171,7 @@
     var teamPublic = [];
     var teamPrivate = {};
     var currentName = "";
+    var currentEmail = "";
 
     function cvHTML(cv) {
       var v = (cv || "").trim();
@@ -170,7 +195,7 @@
       document.getElementById("profile-head").innerHTML = visual +
         "<div><h3>" + esc(name) + "</h3><p class=\"meta\">" +
         esc(pub.role || "Team member") + " · " + esc(pub.group || "") + "</p></div>";
-      var email = (priv.email || "").trim();
+      var email = (priv.email || currentEmail || "").trim();
       var linkedin = (priv.linkedin || "").trim();
       var note = (priv.note || "").trim();
       document.getElementById("profile-details").innerHTML =
@@ -182,30 +207,63 @@
       document.getElementById("profile-suggestions").innerHTML = sugg.length
         ? "<ul class=\"suggestion-list\">" + sugg.map(function (s) { return "<li>" + esc(s) + "</li>"; }).join("") + "</ul>"
         : "<p class=\"meta\">No suggestions yet.</p>";
-      document.getElementById("edit-email").value = priv.email || "";
+      document.getElementById("edit-email").value = priv.email || currentEmail || "";
       document.getElementById("edit-linkedin").value = priv.linkedin || "";
       document.getElementById("edit-note").value = priv.note || "";
       document.getElementById("edit-cv").value = priv.cv || "";
       area.style.display = "block";
     }
 
-    Promise.all([loadJSON("data/team.json"), loadJSON("data/members-private.json")])
-      .then(function (results) {
-        teamPublic = results[0] || [];
-        (results[1] || []).forEach(function (m) { teamPrivate[m.name] = m; });
-        var picker = document.getElementById("member-picker");
-        teamPublic.forEach(function (m) {
-          var opt = document.createElement("option");
-          opt.value = m.name;
-          opt.textContent = m.name;
-          picker.appendChild(opt);
-        });
-        picker.addEventListener("change", function () { showMember(picker.value); });
-      })
-      .catch(function () {
-        document.getElementById("picker-card").innerHTML =
-          "<p>Member details could not be loaded. Please try again later.</p>";
+    function failGate(msg) {
+      document.getElementById("session-line").textContent = msg;
+    }
+
+    // Gate + member lookup.
+    if (!supabaseClient) {
+      failGate("Could not reach the login service — please check your connection and reload.");
+    } else {
+      supabaseClient.auth.getSession().then(function (res) {
+        var session = res.data && res.data.session;
+        if (!session || !session.user) {
+          window.location.replace("login.html");
+          return;
+        }
+        var user = session.user;
+        currentEmail = (user.email || "").trim();
+        var metaName = (user.user_metadata && (user.user_metadata.name || user.user_metadata.display_name)) || "";
+        document.getElementById("session-line").innerHTML =
+          "Logged in as <strong>" + esc(metaName || currentEmail) + "</strong>" +
+          (metaName ? " · " + esc(currentEmail) : "");
+        Promise.all([loadJSON("data/team.json"), loadJSON("data/members-private.json")])
+          .then(function (results) {
+            teamPublic = results[0] || [];
+            (results[1] || []).forEach(function (m) { teamPrivate[m.name] = m; });
+            // Identify the member: prefer the account's display name, else match by email.
+            var name = metaName;
+            if (!name || !teamPrivate[name]) {
+              var byEmail = Object.keys(teamPrivate).find(function (n) {
+                return (teamPrivate[n].email || "").trim().toLowerCase() === currentEmail.toLowerCase();
+              });
+              if (byEmail) name = byEmail;
+            }
+            if (!name) {
+              failGate("Your account is not matched to a team member yet — please ask the PI to link your email.");
+              return;
+            }
+            showMember(name);
+            // Admin? Look up the members table (authenticated users can read it).
+            supabaseClient.from("members").select("is_admin").eq("email", currentEmail).maybeSingle()
+              .then(function (r) {
+                if (r.data && r.data.is_admin) {
+                  document.getElementById("admin-card").style.display = "block";
+                }
+              });
+          })
+          .catch(function () {
+            failGate("Member details could not be loaded. Please try again later.");
+          });
       });
+    }
 
     document.getElementById("edit-form").addEventListener("submit", function (e) {
       e.preventDefault();
@@ -244,9 +302,48 @@
       setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
     });
 
+    document.getElementById("password-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var errEl = document.getElementById("password-error");
+      var okEl = document.getElementById("password-ok");
+      errEl.classList.remove("show");
+      errEl.textContent = "";
+      okEl.style.display = "none";
+      var pw = document.getElementById("new-password").value;
+      var pw2 = document.getElementById("confirm-password").value;
+      if (pw.length < 6) {
+        errEl.textContent = "Password must be at least 6 characters.";
+        errEl.classList.add("show");
+        return;
+      }
+      if (pw !== pw2) {
+        errEl.textContent = "The two passwords do not match.";
+        errEl.classList.add("show");
+        return;
+      }
+      if (!supabaseClient) {
+        errEl.textContent = "Could not reach the login service — please try again.";
+        errEl.classList.add("show");
+        return;
+      }
+      supabaseClient.auth.updateUser({ password: pw }).then(function (res) {
+        if (res.error) {
+          errEl.textContent = "Could not change the password — please try again.";
+          errEl.classList.add("show");
+          return;
+        }
+        document.getElementById("new-password").value = "";
+        document.getElementById("confirm-password").value = "";
+        okEl.style.display = "block";
+      });
+    });
+
     document.getElementById("logout-btn").addEventListener("click", function () {
-      sessionStorage.removeItem("d2d-member");
-      window.location.replace("index.html");
+      if (supabaseClient) {
+        supabaseClient.auth.signOut().then(function () { window.location.replace("index.html"); });
+      } else {
+        window.location.replace("index.html");
+      }
     });
   </script>
 </body>
