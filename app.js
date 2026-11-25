@@ -144,8 +144,8 @@ function renderPublications(list, photos) {
 }
 
 // Public team cards show ONLY photo, name, role and group. Member contact
-// details (email, LinkedIn, note) live in data/members-private.json and are
-// shown only on the member dashboard after login (dashboard.html).
+// details (email, LinkedIn, note) live in the Supabase members table and
+// are shown only on the member dashboard after login (dashboard.html).
 function teamCard(m) {
   const photo = (m.photo || "").trim();
   const visual = photo
@@ -354,5 +354,19 @@ document.addEventListener("DOMContentLoaded", () => {
         if (el) el.innerHTML = "<p>Student Lab entries could not be loaded.</p>";
       }
     });
+  }
+  // Stats on the homepage: the hero counts are live-updating from the same
+  // data files, even though this page renders no project/publication list.
+  if (has("stat-projects")) {
+    loadJSON("data/projects.json").then((l) => {
+      const n = document.getElementById("stat-projects");
+      if (n) n.textContent = l.filter((p) => (p.status || "") !== "Backlog").length;
+    }).catch(() => {});
+  }
+  if (has("stat-review")) {
+    loadJSON("data/publications.json").then((l) => {
+      const n = document.getElementById("stat-review");
+      if (n) n.textContent = l.filter((p) => (p.status || "").toLowerCase().includes("review")).length;
+    }).catch(() => {});
   }
 });
