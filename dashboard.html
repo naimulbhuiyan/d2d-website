@@ -319,14 +319,10 @@
         ]).then(function (results) {
             teamPublic = results[0] || [];
             var memberRow = results[1] && results[1].data;
-            var memberErr = results[1] && results[1].error;
             papersData = (results[2] && results[2].data) || [];
             var driveRows = (results[3] && results[3].data) || [];
             if (!memberRow) {
-              // Temporary diagnostic: show the lookup error (if any) so the
-              // cause can be seen on the page instead of a generic message.
-              failGate("Your account is not matched to a team member yet — please ask the PI to link your email." +
-                (memberErr ? " (lookup error: " + (memberErr.message || memberErr.code || "unknown") + ")" : " (no matching row returned)"));
+              failGate("Your account is not matched to a team member yet — please ask the PI to link your email.");
               return;
             }
             var name = (memberRow.name || "").trim() || metaName;
@@ -343,8 +339,8 @@
             }
             renderPapers(isAdmin);
           })
-          .catch(function (e) {
-            failGate("Member details could not be loaded. (" + (e && e.message ? e.message : "unknown error") + ") Please try again later.");
+          .catch(function () {
+            failGate("Member details could not be loaded. Please try again later.");
           });
       });
     }
