@@ -289,48 +289,70 @@ function renderFeatures(list) {
 document.addEventListener("DOMContentLoaded", () => {
   const yearEl = document.getElementById("year");
   if (yearEl) yearEl.textContent = new Date().getFullYear();
-  const teamData = loadJSON("data/team.json").then((t) => {
-    renderTeam(t);
-    return buildPhotoMap(t);
-  }).catch(() => {
-    const el = document.getElementById("team-list");
-    if (el) el.innerHTML = "<p>Team could not be loaded.</p>";
-    return null;
-  });
+  // Fetch only the data files this page actually renders. Every page used
+  // to download all nine JSON files; now each fetch is gated on its target
+  // element existing on the page.
+  const has = (id) => !!document.getElementById(id);
+  const teamData = (has("team-list") || has("project-list") || has("publication-list"))
+    ? loadJSON("data/team.json").then((t) => {
+        renderTeam(t);
+        return buildPhotoMap(t);
+      }).catch(() => {
+        const el = document.getElementById("team-list");
+        if (el) el.innerHTML = "<p>Team could not be loaded.</p>";
+        return null;
+      })
+    : Promise.resolve(null);
   teamData.then((photos) => {
-    loadJSON("data/projects.json").then((l) => renderProjects(l, photos)).catch(() => {
-      const el = document.getElementById("project-list");
-      if (el) el.innerHTML = "<p>Projects could not be loaded.</p>";
-    });
-    loadJSON("data/publications.json").then((l) => renderPublications(l, photos)).catch(() => {
-      const el = document.getElementById("publication-list");
-      if (el) el.innerHTML = "<li>Publications could not be loaded.</li>";
-    });
-  });
-  loadJSON("data/achievements.json").then(renderAchievements).catch(() => {
-    const el = document.getElementById("achievement-list");
-    if (el) el.innerHTML = "<p>Achievements could not be loaded.</p>";
-  });
-  loadJSON("data/features.json").then(renderFeatures).catch(() => {
-    const el = document.getElementById("feature-list");
-    if (el) el.innerHTML = "<p>Features could not be loaded.</p>";
-  });
-  loadJSON("data/experts.json").then(renderExperts).catch(() => {
-    const el = document.getElementById("expert-list");
-    if (el) el.innerHTML = "<p>Experts could not be loaded.</p>";
-  });
-  loadJSON("data/collaborations.json").then(renderCollaborations).catch(() => {
-    const el = document.getElementById("collab-list");
-    if (el) el.innerHTML = "<p>Collaborations could not be loaded.</p>";
-  });
-  loadJSON("data/development.json").then(renderDevelopment).catch(() => {
-    const el = document.getElementById("development-list");
-    if (el) el.innerHTML = "<p>Development work could not be loaded.</p>";
-  });
-  loadJSON("data/student-lab.json").then(renderStudentLab).catch(() => {
-    for (const id of ["bph-list", "mph-thesis-list", "mph-projects-list"]) {
-      const el = document.getElementById(id);
-      if (el) el.innerHTML = "<p>Student Lab entries could not be loaded.</p>";
+    if (has("project-list")) {
+      loadJSON("data/projects.json").then((l) => renderProjects(l, photos)).catch(() => {
+        const el = document.getElementById("project-list");
+        if (el) el.innerHTML = "<p>Projects could not be loaded.</p>";
+      });
+    }
+    if (has("publication-list")) {
+      loadJSON("data/publications.json").then((l) => renderPublications(l, photos)).catch(() => {
+        const el = document.getElementById("publication-list");
+        if (el) el.innerHTML = "<li>Publications could not be loaded.</li>";
+      });
     }
   });
+  if (has("achievement-list")) {
+    loadJSON("data/achievements.json").then(renderAchievements).catch(() => {
+      const el = document.getElementById("achievement-list");
+      if (el) el.innerHTML = "<p>Achievements could not be loaded.</p>";
+    });
+  }
+  if (has("feature-list")) {
+    loadJSON("data/features.json").then(renderFeatures).catch(() => {
+      const el = document.getElementById("feature-list");
+      if (el) el.innerHTML = "<p>Features could not be loaded.</p>";
+    });
+  }
+  if (has("expert-list")) {
+    loadJSON("data/experts.json").then(renderExperts).catch(() => {
+      const el = document.getElementById("expert-list");
+      if (el) el.innerHTML = "<p>Experts could not be loaded.</p>";
+    });
+  }
+  if (has("collab-list")) {
+    loadJSON("data/collaborations.json").then(renderCollaborations).catch(() => {
+      const el = document.getElementById("collab-list");
+      if (el) el.innerHTML = "<p>Collaborations could not be loaded.</p>";
+    });
+  }
+  if (has("development-list")) {
+    loadJSON("data/development.json").then(renderDevelopment).catch(() => {
+      const el = document.getElementById("development-list");
+      if (el) el.innerHTML = "<p>Development work could not be loaded.</p>";
+    });
+  }
+  if (has("bph-list")) {
+    loadJSON("data/student-lab.json").then(renderStudentLab).catch(() => {
+      for (const id of ["bph-list", "mph-thesis-list", "mph-projects-list"]) {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = "<p>Student Lab entries could not be loaded.</p>";
+      }
+    });
+  }
 });

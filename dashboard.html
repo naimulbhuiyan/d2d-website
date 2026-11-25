@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Member Dashboard — Data 2 Decision (D2D)</title>
   <meta name="description" content="Private dashboard for D2D team members: your details, CV, project Drive folders, your submitted papers and the PI's suggestions.">
-  <link rel="icon" type="image/png" href="assets/logo.png">
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/png" href="assets/favicon.png">
   <link rel="stylesheet" href="styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -156,10 +157,10 @@
 
   <script>
     // Member dashboard: the logged-in member is identified by their Supabase
-    // account email. Their public team entry (photo, name, role, group) and
-    // private details (email, LinkedIn, note, CV, suggestions) are matched
-    // by name/email from the site's own data files. No public page loads the
-    // private file — only this gated page does.
+    // account email. Their public team entry (photo, name, role, group) comes
+    // from data/team.json; their private details (LinkedIn, note, CV,
+    // suggestions), submitted papers and Drive folders come from Supabase
+    // (authenticated read) — none of that lives in a public file any more.
     var PI_EMAIL = "data2decision20@gmail.com";
 
     document.getElementById("year").textContent = new Date().getFullYear();
@@ -181,7 +182,6 @@
     }
 
     var teamPublic = [];
-    var teamPrivate = {};
     var currentName = "";
     var currentEmail = "";
 
@@ -194,33 +194,33 @@
       return esc(v);
     }
 
-    // Drive folders (members only): project folders from data/projects.json
-    // and manuscript folders from data/publications.json. These links are
-    // deliberately NOT rendered on the public Research page (app.js).
-    function renderDriveFolders(projects, pubs) {
+    // Drive folders (members only): from the Supabase drive_links table.
+    // These links are deliberately NOT in any public file and NOT rendered
+    // on the public Research page (app.js).
+    function renderDriveFolders(rows) {
       var card = document.getElementById("drive-card");
       var list = document.getElementById("drive-list");
       if (!card || !list) return;
-      var pLinks = (projects || []).filter(function (p) { return (p.link || "").trim(); });
-      var pubLinks = (pubs || []).filter(function (p) { return (p.drive || "").trim(); });
+      var pLinks = (rows || []).filter(function (r) { return r.kind === "project"; });
+      var pubLinks = (rows || []).filter(function (r) { return r.kind === "publication"; });
       var html = "";
       if (pLinks.length) {
-        html += "<h3>Research projects</h3><ul class=\"suggestion-list\">" + pLinks.map(function (p) {
-          return "<li><a href=\"" + esc(p.link) + "\" target=\"_blank\" rel=\"noopener\">" + esc(p.title) + " — Drive folder →</a></li>";
+        html += "<h3>Research projects</h3><ul class=\"suggestion-list\">" + pLinks.map(function (r) {
+          return "<li><a href=\"" + esc(r.url) + "\" target=\"_blank\" rel=\"noopener\">" + esc(r.ref) + " — Drive folder →</a></li>";
         }).join("") + "</ul>";
       }
       if (pubLinks.length) {
-        html += "<h3>Manuscripts under review</h3><ul class=\"suggestion-list\">" + pubLinks.map(function (p) {
-          return "<li><a href=\"" + esc(p.drive) + "\" target=\"_blank\" rel=\"noopener\">" + esc(p.topic) + " — Drive folder →</a></li>";
+        html += "<h3>Manuscripts under review</h3><ul class=\"suggestion-list\">" + pubLinks.map(function (r) {
+          return "<li><a href=\"" + esc(r.url) + "\" target=\"_blank\" rel=\"noopener\">" + esc(r.ref) + " — Drive folder →</a></li>";
         }).join("") + "</ul>";
       }
       list.innerHTML = html || "<p class=\"meta\">No Drive folders linked yet.</p>";
       card.style.display = "block";
     }
 
-    // Submitted papers (member-only): from data/papers.json. Each paper lists
-    // the login emails of its D2D authors in `members`. A member sees only
-    // their own papers; an admin sees all submitted papers.
+    // Submitted papers (member-only): from the Supabase papers table. Each
+    // paper lists the login emails of its D2D authors in `members`. A member
+    // sees only their own papers; an admin sees all submitted papers.
     var papersData = [];
     var PAPER_STATUS_ORDER = ["Accepted", "Under review", "Revision in hand", "Rejected", "No decision"];
     function renderPapers(isAdmin) {
@@ -246,7 +246,7 @@
         html += "<h3>" + esc(status) + " (" + group.length + ")</h3><ul class=\"suggestion-list\">" + group.map(function (p) {
           var bits = "<strong>" + esc(p.title) + "</strong><br>" +
             "<span class=\"meta\">" + esc(p.journal || "") +
-            (p.msId ? " · " + esc(p.msId) : "") +
+            (p.msid ? " · " + esc(p.msid) : "") +
             (p.submitted ? " · submitted " + esc(p.submitted) : "") + "</span>" +
             (p.detail ? "<br>" + esc(p.detail) : "") +
             (p.link ? "<br><a href=\"" + esc(p.link) + "\" target=\"_blank\" rel=\"noopener\">Open link →</a>" : "");
@@ -257,12 +257,12 @@
       card.style.display = "block";
     }
 
-    function showMember(name) {
+    function showMember(name, priv) {
       currentName = name;
       var area = document.getElementById("profile-area");
       if (!name) { area.style.display = "none"; return; }
       var pub = teamPublic.find(function (m) { return m.name === name; }) || {};
-      var priv = teamPrivate[name] || {};
+      priv = priv || {};
       var photo = (pub.photo || "").trim();
       var visual = photo
         ? "<img src=\"" + esc(photo) + "\" alt=\"Photo of " + esc(name) + "\">"
@@ -309,36 +309,35 @@
         document.getElementById("session-line").innerHTML =
           "Logged in as <strong>" + esc(metaName || currentEmail) + "</strong>" +
           (metaName ? " · " + esc(currentEmail) : "");
-        Promise.all([loadJSON("data/team.json"), loadJSON("data/members-private.json"), loadJSON("data/projects.json"), loadJSON("data/publications.json"), loadJSON("data/papers.json")])
-          .then(function (results) {
+        // Gate + member lookup. Member details, papers and Drive links come
+        // from Supabase (authenticated read) — no private JSON files any more.
+        Promise.all([
+          loadJSON("data/team.json"),
+          supabaseClient.from("members").select("name,linkedin,note,cv,suggestions,is_admin").eq("email", currentEmail).maybeSingle(),
+          supabaseClient.from("papers").select("title,journal,link,msid,status,submitted,detail,members"),
+          supabaseClient.from("drive_links").select("kind,ref,url").order("ref")
+        ]).then(function (results) {
             teamPublic = results[0] || [];
-            papersData = results[4] || [];
-            (results[1] || []).forEach(function (m) { teamPrivate[m.name] = m; });
-            // Identify the member: prefer the account's display name, else match by email.
-            var name = metaName;
-            if (!name || !teamPrivate[name]) {
-              var byEmail = Object.keys(teamPrivate).find(function (n) {
-                return (teamPrivate[n].email || "").trim().toLowerCase() === currentEmail.toLowerCase();
-              });
-              if (byEmail) name = byEmail;
+            var memberRow = results[1] && results[1].data;
+            papersData = (results[2] && results[2].data) || [];
+            var driveRows = (results[3] && results[3].data) || [];
+            if (!memberRow) {
+              failGate("Your account is not matched to a team member yet — please ask the PI to link your email.");
+              return;
             }
+            var name = (memberRow.name || "").trim() || metaName;
             if (!name) {
               failGate("Your account is not matched to a team member yet — please ask the PI to link your email.");
               return;
             }
-            showMember(name);
-            renderDriveFolders(results[2], results[3]);
-            // Admin? Look up the members table (authenticated users can read it).
+            showMember(name, memberRow);
+            renderDriveFolders(driveRows);
             // Admins see all submitted papers; other members see only their own.
-            supabaseClient.from("members").select("is_admin").eq("email", currentEmail).maybeSingle()
-              .then(function (r) {
-                var isAdmin = !!(r.data && r.data.is_admin);
-                if (isAdmin) {
-                  document.getElementById("admin-card").style.display = "block";
-                }
-                renderPapers(isAdmin);
-              })
-              .catch(function () { renderPapers(false); });
+            var isAdmin = !!memberRow.is_admin;
+            if (isAdmin) {
+              document.getElementById("admin-card").style.display = "block";
+            }
+            renderPapers(isAdmin);
           })
           .catch(function () {
             failGate("Member details could not be loaded. Please try again later.");
