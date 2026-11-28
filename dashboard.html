@@ -70,8 +70,8 @@
           </div>
 
           <div class="card form-card" id="drive-card" style="display: none; margin-top: 16px;">
-            <h3>Project Drive folders</h3>
-            <p class="small">These folders are for team members only — they are not shown on the public Research page.</p>
+            <h3>Project Drive folders &amp; WhatsApp groups</h3>
+            <p class="small">Drive folders and WhatsApp group links for team members only — they are not shown on the public Research page.</p>
             <div id="drive-list"><p class="meta">Loading…</p></div>
           </div>
 
@@ -194,19 +194,40 @@
       return esc(v);
     }
 
-    // Drive folders (members only): from the Supabase drive_links table.
+    // Drive folders + WhatsApp groups (members only): Drive links from the
+    // Supabase drive_links table, WhatsApp invite links from whatsapp_links.
     // These links are deliberately NOT in any public file and NOT rendered
     // on the public Research page (app.js).
-    function renderDriveFolders(rows) {
+    function renderDriveFolders(rows, waRows) {
       var card = document.getElementById("drive-card");
       var list = document.getElementById("drive-list");
       if (!card || !list) return;
+      var waMap = {};
+      (waRows || []).forEach(function (r) { waMap[r.ref] = r.url; });
       var pLinks = (rows || []).filter(function (r) { return r.kind === "project"; });
       var pubLinks = (rows || []).filter(function (r) { return r.kind === "publication"; });
       var html = "";
-      if (pLinks.length) {
-        html += "<h3>Research projects</h3><ul class=\"suggestion-list\">" + pLinks.map(function (r) {
-          return "<li><a href=\"" + esc(r.url) + "\" target=\"_blank\" rel=\"noopener\">" + esc(r.ref) + " — Drive folder →</a></li>";
+      // Union of Drive-linked projects and WhatsApp-linked projects, so a
+      // project with a WhatsApp group but no Drive folder yet still shows.
+      var seen = {};
+      var items = [];
+      pLinks.forEach(function (r) {
+        seen[r.ref] = true;
+        items.push({ ref: r.ref, drive: r.url, wa: waMap[r.ref] || null });
+      });
+      (waRows || []).forEach(function (r) {
+        if (!seen[r.ref]) {
+          seen[r.ref] = true;
+          items.push({ ref: r.ref, drive: null, wa: r.url });
+        }
+      });
+      items.sort(function (a, b) { return a.ref < b.ref ? -1 : a.ref > b.ref ? 1 : 0; });
+      if (items.length) {
+        html += "<h3>Research projects</h3><ul class=\"suggestion-list\">" + items.map(function (it) {
+          var bits = "<strong>" + esc(it.ref) + "</strong> — " +
+            (it.drive ? "<a href=\"" + esc(it.drive) + "\" target=\"_blank\" rel=\"noopener\">Drive folder →</a>" : "<span class=\"meta\">No Drive folder yet</span>") +
+            (it.wa ? " · <a href=\"" + esc(it.wa) + "\" target=\"_blank\" rel=\"noopener\">WhatsApp group →</a>" : "");
+          return "<li>" + bits + "</li>";
         }).join("") + "</ul>";
       }
       if (pubLinks.length) {
@@ -315,12 +336,14 @@
           loadJSON("data/team.json"),
           supabaseClient.from("members").select("name,linkedin,note,cv,suggestions,is_admin").eq("email", currentEmail).maybeSingle(),
           supabaseClient.from("papers").select("title,journal,link,msid,status,submitted,detail,members"),
-          supabaseClient.from("drive_links").select("kind,ref,url").order("ref")
+          supabaseClient.from("drive_links").select("kind,ref,url").order("ref"),
+          supabaseClient.from("whatsapp_links").select("ref,url").order("ref")
         ]).then(function (results) {
             teamPublic = results[0] || [];
             var memberRow = results[1] && results[1].data;
             papersData = (results[2] && results[2].data) || [];
             var driveRows = (results[3] && results[3].data) || [];
+            var waRows = (results[4] && results[4].data) || [];
             if (!memberRow) {
               failGate("Your account is not matched to a team member yet — please ask the PI to link your email.");
               return;
@@ -331,7 +354,7 @@
               return;
             }
             showMember(name, memberRow);
-            renderDriveFolders(driveRows);
+            renderDriveFolders(driveRows, waRows);
             // Admins see all submitted papers; other members see only their own.
             var isAdmin = !!memberRow.is_admin;
             if (isAdmin) {
